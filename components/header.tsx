@@ -3,15 +3,34 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Package } from "lucide-react"
+import { Search, Package, Plus, LogOut, User } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { cn } from "@/lib/utils"
+import { useSession, signOut } from "next-auth/react"
 
 export default function Header() {
+  const router = useRouter()
+  const { data: session } = useSession()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
@@ -25,22 +44,18 @@ export default function Header() {
             <Link href="/" className="text-base font-medium hover:text-primary">
               Обзор
             </Link>
-            <Link href="/services" className="text-base font-medium hover:text-primary">
-              Услуги
+            <Link href="/best-projects" className="text-base font-medium hover:text-primary">
+              Лучшие проекты
             </Link>
-            <Link href="/blog" className="text-base font-medium hover:text-primary">
-              Блог
+            <Link href="/all-projects" className="text-base font-medium hover:text-primary">
+              Все проекты
             </Link>
           </nav>
         </div>
 
         <div className="flex items-center gap-3">
           <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              // Здесь будет логика поиска
-              console.log("Поиск:", searchQuery)
-            }}
+            onSubmit={handleSearch}
             className="relative hidden md:flex items-center"
           >
             <input
@@ -53,22 +68,54 @@ export default function Header() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           </form>
 
-          <Button
-            variant="default"
-            className="hidden md:inline-flex bg-gradient-to-r from-[#FF4400] to-[#D30000] hover:opacity-90 text-white"
-          >
-            Повышение прав
-          </Button>
+          {session ? (
+            <>
+              <Button
+                variant="default"
+                className="hidden md:inline-flex"
+                onClick={() => router.push("/project/create")}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Создать проект
+              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
+                    <Image
+                      src={session.user?.image || `https://api.dicebear.com/6.x/initials/svg?seed=${session.user?.name}`}
+                      alt={session.user?.name || "User"}
+                      fill
+                      className="rounded-full object-cover"
+                    />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>{session.user?.name}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => router.push(`/profile/${session.user?.id}`)}>
+                    <User className="mr-2 h-4 w-4" />
+                    Профиль
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push("/project/create")}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Создать проект
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Выйти
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <Button variant="outline" className="hidden md:inline-flex" onClick={() => router.push("/login")}>
+              Войти
+            </Button>
+          )}
 
           <ThemeToggle />
-
-          <Button variant="outline" size="icon" className="hidden md:flex">
-            <Package className="h-5 w-5 text-muted-foreground" />
-          </Button>
-
-          <Button variant="outline" className="hidden md:inline-flex">
-            Войти
-          </Button>
 
           <Button
             variant="ghost"
@@ -108,34 +155,76 @@ export default function Header() {
             <Link href="/" className="text-base font-medium py-2">
               Обзор
             </Link>
-            <Link href="/services" className="text-base font-medium py-2">
-              Услуги
+            <Link href="/best-projects" className="text-base font-medium py-2">
+              Лучшие проекты
             </Link>
-            <Link href="/blog" className="text-base font-medium py-2">
-              Блог
+            <Link href="/all-projects" className="text-base font-medium py-2">
+              Все проекты
             </Link>
           </nav>
 
           <div className="relative flex items-center">
             <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
-            <Input className="pl-9" placeholder="Поиск" />
+            <Input 
+              className="pl-9" 
+              placeholder="Поиск"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
+            />
           </div>
 
           <div className="flex flex-col gap-2">
-            <Button
-              variant="default"
-              className="w-full bg-gradient-to-r from-[#FF4400] to-[#D30000] hover:opacity-90 text-white"
-            >
-              Повышение прав
-            </Button>
+            {session ? (
+              <>
+                <Button
+                  variant="default"
+                  className="w-full"
+                  onClick={() => {
+                    router.push("/project/create")
+                    setIsMenuOpen(false)
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Создать проект
+                </Button>
 
-            <Button variant="outline" className="w-full">
-              Войти
-            </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    router.push(`/profile/${session.user?.id}`)
+                    setIsMenuOpen(false)
+                  }}
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Профиль
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Выйти
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  router.push("/login")
+                  setIsMenuOpen(false)
+                }}
+              >
+                Войти
+              </Button>
+            )}
           </div>
         </div>
       </div>
     </header>
   )
 }
-

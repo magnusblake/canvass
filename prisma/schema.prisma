@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String    @id @default(cuid())
+  name        String
+  email       String    @unique
+  password    String
+  image       String?
+  bio         String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  projects    Project[]
+  likes       Like[]
+}
+
+model Project {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  image       String
+  featured    Boolean   @default(false)
+  category    Category
+  tags        String[]
+  views       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes       Like[]
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  projectId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+}
+
+model Story {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  imageUrl  String
+  link      String
+  createdAt DateTime @default(now())
+}
+
+enum Category {
+  TWO_D @map("2d")
+  THREE_D @map("3d")
+}

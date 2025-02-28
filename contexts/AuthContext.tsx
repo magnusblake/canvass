@@ -1,45 +1,31 @@
 "use client"
 
-import type React from "react"
-import { createContext, useContext, useState, useEffect } from "react"
+import { SessionProvider, useSession, signIn, signOut } from "next-auth/react"
+import { createContext, useContext } from "react"
 
-type User = {
-  id: string
-  name: string
-} | null
+export const AuthContext = createContext(null)
 
-type AuthContextType = {
-  user: User
-  login: () => void
-  logout: () => void
+export const AuthProvider = ({ children }) => {
+  return (
+    <SessionProvider>
+      <AuthContent>{children}</AuthContent>
+    </SessionProvider>
+  )
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContent = ({ children }) => {
+  const { data: session } = useSession()
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User>(null)
+  const login = () => signIn()
+  const logout = () => signOut()
 
-  useEffect(() => {
-    // Check if user is logged in (e.g., by checking local storage or a token)
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
-  }, [])
+  const user = session?.user || null
 
-  const login = () => {
-    // Simulate login
-    const newUser = { id: "1", name: "John Doe" }
-    setUser(newUser)
-    localStorage.setItem("user", JSON.stringify(newUser))
-  }
-
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem("user")
-  }
-
-  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export const useAuth = () => {
@@ -49,4 +35,3 @@ export const useAuth = () => {
   }
   return context
 }
-

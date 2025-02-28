@@ -2,8 +2,13 @@ import { getAllProjects } from "@/lib/data"
 import AllProjects from "@/components/all-projects"
 import Header from "@/components/header"
 
-export default function AllProjectsPage() {
-  const projects = getAllProjects()
+export const metadata = {
+  title: "Все проекты | Canvas",
+  description: "Просмотр всех дизайнерских проектов на платформе Canvas",
+}
+
+export default async function AllProjectsPage() {
+  const projects = await getAllProjects()
 
   return (
     <main className="min-h-screen bg-background">
@@ -15,4 +20,3 @@ export default function AllProjectsPage() {
     </main>
   )
 }
-

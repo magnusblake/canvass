@@ -5,9 +5,9 @@ import HeroSlider from "@/components/hero-slider"
 import Stories from "@/components/stories"
 import { getAllProjects, getAllStories } from "@/lib/data"
 
-export default function Home() {
-  const projects = getAllProjects()
-  const stories = getAllStories()
+export default async function Home() {
+  const projects = await getAllProjects()
+  const stories = await getAllStories()
 
   return (
     <main className="min-h-screen bg-background">
@@ -23,4 +23,3 @@ export default function Home() {
     </main>
   )
 }
-
