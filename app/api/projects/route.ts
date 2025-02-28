@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
-import prisma from "@/lib/prisma"
+import { getAllProjects, getProjectsByCategory, getFeaturedProjects, createProject } from "@/lib/data"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 
 export async function GET(req: Request) {
@@ -8,50 +8,20 @@ export async function GET(req: Request) {
   const category = searchParams.get("category")
   const featured = searchParams.get("featured") === "true"
 
-  let query = {}
-
-  if (category && category !== "all") {
-    query = {
-      ...query,
-      category: category === "2d" ? "TWO_D" : "THREE_D"
-    }
-  }
-
-  if (featured) {
-    query = {
-      ...query,
-      featured: true
-    }
-  }
-
   try {
-    const projects = await prisma.project.findMany({
-      where: query,
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          }
-        },
-        _count: {
-          select: { likes: true }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
+    let projects;
+    
+    if (featured) {
+      projects = await getFeaturedProjects();
+    } else if (category && category !== "all") {
+      projects = await getProjectsByCategory(category);
+    } else {
+      projects = await getAllProjects();
+    }
 
-    return NextResponse.json(projects.map(project => ({
-      ...project,
-      likes: project._count.likes,
-      author: project.author.name,
-      authorId: project.author.id,
-      authorImage: project.author.image
-    })))
+    return NextResponse.json(projects)
   } catch (error) {
+    console.error("Error fetching projects:", error)
     return NextResponse.json({ error: "Failed to fetch projects" }, { status: 500 })
   }
 }
@@ -67,29 +37,22 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { title, description, image, category, tags } = body
 
-    const user = await prisma.user.findUnique({
-      where: {
-        email: session.user.email
-      }
-    })
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    if (!title || !description || !image || !category) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    const project = await prisma.project.create({
-      data: {
-        title,
-        description,
-        image,
-        category: category === "2d" ? "TWO_D" : "THREE_D",
-        tags,
-        authorId: user.id
-      }
+    const project = await createProject({
+      title,
+      description,
+      image,
+      category,
+      tags: tags || [],
+      authorId: session.user.id
     })
 
     return NextResponse.json(project)
   } catch (error) {
+    console.error("Error creating project:", error)
     return NextResponse.json({ error: "Failed to create project" }, { status: 500 })
   }
 }

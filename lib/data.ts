@@ -1,165 +1,271 @@
-import prisma from "./prisma"
-import type { Project, Story } from "./types"
+import { v4 as uuidv4 } from 'uuid';
+import db from './db';
+import type { Project, Story } from "./types";
+
+// Преобразовать строки из БД в объект проекта
+function projectFromDb(row: any): Project {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    image: row.image,
+    featured: Boolean(row.featured),
+    category: row.category,
+    tags: JSON.parse(row.tags),
+    views: row.views,
+    likes: row.likeCount || 0,
+    author: row.authorName,
+    authorId: row.authorId,
+    createdAt: row.createdAt
+  };
+}
 
 export async function getAllProjects(): Promise<Project[]> {
-  const projects = await prisma.project.findMany({
-    include: {
-      author: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-        }
-      },
-      _count: {
-        select: { likes: true }
-      }
-    },
-    orderBy: {
-      createdAt: 'desc'
-    }
-  })
+  const stmt = db.prepare(`
+    SELECT p.*, u.name as authorName, COUNT(l.id) as likeCount 
+    FROM projects p
+    LEFT JOIN users u ON p.authorId = u.id
+    LEFT JOIN likes l ON p.id = l.projectId
+    GROUP BY p.id
+    ORDER BY p.createdAt DESC
+  `);
 
-  return projects.map(project => ({
-    id: project.id,
-    title: project.title,
-    description: project.description,
-    image: project.image,
-    author: project.author.name,
-    authorId: project.author.id,
-    likes: project._count.likes,
-    views: project.views,
-    featured: project.featured,
-    category: project.category === "TWO_D" ? "2d" : "3d",
-    tags: project.tags,
-    createdAt: project.createdAt.toISOString(),
-  }))
+  const rows = stmt.all();
+  return rows.map(projectFromDb);
 }
 
 export async function getProjectById(id: string): Promise<Project | null> {
-  const project = await prisma.project.findUnique({
-    where: { id },
-    include: {
-      author: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-        }
-      },
-      _count: {
-        select: { likes: true }
-      }
-    }
-  })
+  const stmt = db.prepare(`
+    SELECT p.*, u.name as authorName, COUNT(l.id) as likeCount 
+    FROM projects p
+    LEFT JOIN users u ON p.authorId = u.id
+    LEFT JOIN likes l ON p.id = l.projectId
+    WHERE p.id = ?
+    GROUP BY p.id
+  `);
 
-  if (!project) return null
+  const row = stmt.get(id);
+  if (!row) return null;
 
-  return {
-    id: project.id,
-    title: project.title,
-    description: project.description,
-    image: project.image,
-    author: project.author.name,
-    authorId: project.author.id,
-    likes: project._count.likes,
-    views: project.views,
-    featured: project.featured,
-    category: project.category === "TWO_D" ? "2d" : "3d",
-    tags: project.tags,
-    createdAt: project.createdAt.toISOString(),
-  }
+  // Обновляем счетчик просмотров
+  const updateViewsStmt = db.prepare('UPDATE projects SET views = views + 1 WHERE id = ?');
+  updateViewsStmt.run(id);
+
+  return projectFromDb(row);
 }
 
 export async function getFeaturedProjects(): Promise<Project[]> {
-  const projects = await prisma.project.findMany({
-    where: {
-      featured: true
-    },
-    include: {
-      author: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-        }
-      },
-      _count: {
-        select: { likes: true }
-      }
-    },
-    orderBy: {
-      createdAt: 'desc'
-    }
-  })
+  const stmt = db.prepare(`
+    SELECT p.*, u.name as authorName, COUNT(l.id) as likeCount 
+    FROM projects p
+    LEFT JOIN users u ON p.authorId = u.id
+    LEFT JOIN likes l ON p.id = l.projectId
+    WHERE p.featured = 1
+    GROUP BY p.id
+    ORDER BY p.createdAt DESC
+  `);
 
-  return projects.map(project => ({
-    id: project.id,
-    title: project.title,
-    description: project.description,
-    image: project.image,
-    author: project.author.name,
-    authorId: project.author.id,
-    likes: project._count.likes,
-    views: project.views,
-    featured: project.featured,
-    category: project.category === "TWO_D" ? "2d" : "3d",
-    tags: project.tags,
-    createdAt: project.createdAt.toISOString(),
-  }))
+  const rows = stmt.all();
+  return rows.map(projectFromDb);
 }
 
 export async function getProjectsByCategory(category: string): Promise<Project[]> {
-  const projects = await prisma.project.findMany({
-    where: {
-      category: category === "2d" ? "TWO_D" : "THREE_D"
-    },
-    include: {
-      author: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-        }
-      },
-      _count: {
-        select: { likes: true }
-      }
-    },
-    orderBy: {
-      createdAt: 'desc'
-    }
-  })
+  const stmt = db.prepare(`
+    SELECT p.*, u.name as authorName, COUNT(l.id) as likeCount 
+    FROM projects p
+    LEFT JOIN users u ON p.authorId = u.id
+    LEFT JOIN likes l ON p.id = l.projectId
+    WHERE p.category = ?
+    GROUP BY p.id
+    ORDER BY p.createdAt DESC
+  `);
 
-  return projects.map(project => ({
-    id: project.id,
-    title: project.title,
-    description: project.description,
-    image: project.image,
-    author: project.author.name,
-    authorId: project.author.id,
-    likes: project._count.likes,
-    views: project.views,
-    featured: project.featured,
-    category: project.category === "TWO_D" ? "2d" : "3d",
-    tags: project.tags,
-    createdAt: project.createdAt.toISOString(),
-  }))
+  const rows = stmt.all(category);
+  return rows.map(projectFromDb);
 }
 
 export async function getAllStories(): Promise<Story[]> {
-  const stories = await prisma.story.findMany({
-    orderBy: {
-      createdAt: 'desc'
-    }
-  })
+  const stmt = db.prepare('SELECT * FROM stories ORDER BY createdAt DESC');
+  return stmt.all() as Story[];
+}
 
-  return stories.map(story => ({
-    id: story.id,
-    title: story.title,
-    content: story.content,
-    imageUrl: story.imageUrl,
-    link: story.link,
-    createdAt: story.createdAt.toISOString(),
-  }))
+export async function createProject(data: {
+  title: string;
+  description: string;
+  image: string;
+  category: "2d" | "3d";
+  tags: string[];
+  authorId: string;
+  featured?: boolean;
+}): Promise<Project> {
+  const id = uuidv4();
+  const now = new Date().toISOString();
+  
+  const stmt = db.prepare(`
+    INSERT INTO projects (id, title, description, image, featured, category, tags, createdAt, updatedAt, authorId)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  
+  stmt.run(
+    id,
+    data.title,
+    data.description,
+    data.image,
+    data.featured ? 1 : 0,
+    data.category,
+    JSON.stringify(data.tags),
+    now,
+    now,
+    data.authorId
+  );
+  
+  return getProjectById(id) as Promise<Project>;
+}
+
+export async function updateProject(id: string, data: {
+  title?: string;
+  description?: string;
+  image?: string;
+  category?: "2d" | "3d";
+  tags?: string[];
+  featured?: boolean;
+}): Promise<Project | null> {
+  const project = await getProjectById(id);
+  if (!project) return null;
+  
+  const updateFields = [];
+  const params = [];
+  
+  if (data.title !== undefined) {
+    updateFields.push('title = ?');
+    params.push(data.title);
+  }
+  
+  if (data.description !== undefined) {
+    updateFields.push('description = ?');
+    params.push(data.description);
+  }
+  
+  if (data.image !== undefined) {
+    updateFields.push('image = ?');
+    params.push(data.image);
+  }
+  
+  if (data.category !== undefined) {
+    updateFields.push('category = ?');
+    params.push(data.category);
+  }
+  
+  if (data.tags !== undefined) {
+    updateFields.push('tags = ?');
+    params.push(JSON.stringify(data.tags));
+  }
+  
+  if (data.featured !== undefined) {
+    updateFields.push('featured = ?');
+    params.push(data.featured ? 1 : 0);
+  }
+  
+  updateFields.push('updatedAt = ?');
+  params.push(new Date().toISOString());
+  
+  // Добавляем id проекта в параметры
+  params.push(id);
+  
+  if (updateFields.length > 0) {
+    const stmt = db.prepare(`
+      UPDATE projects 
+      SET ${updateFields.join(', ')}
+      WHERE id = ?
+    `);
+    
+    stmt.run(...params);
+  }
+  
+  return getProjectById(id);
+}
+
+export async function deleteProject(id: string): Promise<boolean> {
+  const stmt = db.prepare('DELETE FROM projects WHERE id = ?');
+  const result = stmt.run(id);
+  return result.changes > 0;
+}
+
+export async function getUserById(id: string) {
+  const userStmt = db.prepare('SELECT * FROM users WHERE id = ?');
+  const user = userStmt.get(id);
+  
+  if (!user) return null;
+  
+  // Получаем проекты пользователя
+  const projectsStmt = db.prepare(`
+    SELECT p.*, u.name as authorName, COUNT(l.id) as likeCount 
+    FROM projects p
+    LEFT JOIN users u ON p.authorId = u.id
+    LEFT JOIN likes l ON p.id = l.projectId
+    WHERE p.authorId = ?
+    GROUP BY p.id
+    ORDER BY p.createdAt DESC
+  `);
+  
+  const projectRows = projectsStmt.all(id);
+  const projects = projectRows.map(projectFromDb);
+  
+  return {
+    ...user,
+    projects
+  };
+}
+
+export async function getUserByEmail(email: string) {
+  const stmt = db.prepare('SELECT * FROM users WHERE email = ?');
+  return stmt.get(email);
+}
+
+export async function createUser(data: {
+  name: string;
+  email: string;
+  password?: string;
+  image?: string;
+}): Promise<any> {
+  const id = uuidv4();
+  const stmt = db.prepare(`
+    INSERT INTO users (id, name, email, password, image)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+  
+  stmt.run(
+    id,
+    data.name,
+    data.email,
+    data.password || null,
+    data.image || null
+  );
+  
+  return getUserById(id);
+}
+
+export async function toggleLike(userId: string, projectId: string): Promise<{ liked: boolean }> {
+  // Проверяем, существует ли лайк
+  const checkStmt = db.prepare('SELECT id FROM likes WHERE userId = ? AND projectId = ?');
+  const existingLike = checkStmt.get(userId, projectId);
+  
+  if (existingLike) {
+    // Удаляем лайк
+    const deleteStmt = db.prepare('DELETE FROM likes WHERE id = ?');
+    deleteStmt.run(existingLike.id);
+    return { liked: false };
+  } else {
+    // Добавляем лайк
+    const id = uuidv4();
+    const insertStmt = db.prepare('INSERT INTO likes (id, userId, projectId) VALUES (?, ?, ?)');
+    insertStmt.run(id, userId, projectId);
+    return { liked: true };
+  }
+}
+
+export async function isProjectLikedByUser(userId: string, projectId: string): Promise<boolean> {
+  const stmt = db.prepare('SELECT id FROM likes WHERE userId = ? AND projectId = ?');
+  const like = stmt.get(userId, projectId);
+  return !!like;
 }

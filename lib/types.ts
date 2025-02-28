@@ -22,3 +22,12 @@ export interface Project {
   createdAt: string
 }
 
+export interface User {
+  id: string
+  name: string
+  email: string
+  image?: string | null
+  bio?: string | null
+  createdAt: string
+  projects?: Project[]
+}

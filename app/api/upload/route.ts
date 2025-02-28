@@ -1,12 +1,21 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { v4 as uuidv4 } from "uuid"
+import fs from 'fs'
+import path from 'path'
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
-import { writeFile } from "fs/promises"
-import path from "path"
 
-// Создаем директорию для загрузок, если её нет
-const uploadDir = path.join(process.cwd(), "public/uploads")
+// Путь для сохранения загруженных файлов
+const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
+
+// Создаем директорию, если её нет
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true })
+  }
+} catch (error) {
+  console.error('Error creating uploads directory:', error)
+}
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
@@ -23,31 +32,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 })
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer())
     const fileExtension = file.name.split(".").pop()
     const fileName = `${uuidv4()}.${fileExtension}`
+    const filePath = path.join(uploadsDir, fileName)
     
-    // Сохраняем файл локально
-    try {
-      // Убедимся, что директория существует
-      await writeFile(path.join(uploadDir, fileName), buffer)
-    } catch (error) {
-      console.error("Error writing file:", error)
-      // Если возникает ошибка при записи (например, директория не существует),
-      // используем подход с URL-ами вместо этого
-      return NextResponse.json({ 
-        imageUrl: `https://source.unsplash.com/random/800x600?${file.name.split('.')[0]}`
-      })
-    }
-
+    // Преобразование File в Buffer
+    const buffer = Buffer.from(await file.arrayBuffer())
+    
+    // Запись файла на диск
+    fs.writeFileSync(filePath, buffer)
+    
+    // Формирование относительного URL для файла
     const imageUrl = `/uploads/${fileName}`
     
     return NextResponse.json({ imageUrl })
   } catch (error) {
     console.error("Upload error:", error)
-    // Запасной вариант - используем случайные изображения с Unsplash
-    return NextResponse.json({ 
-      imageUrl: "https://source.unsplash.com/random/800x600?design"
-    })
+    return NextResponse.json({ error: "Failed to upload file" }, { status: 500 })
   }
 }

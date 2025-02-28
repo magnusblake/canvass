@@ -9,11 +9,19 @@ import { Heart, Eye, Calendar, Tag, ChevronLeft } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { ru } from "date-fns/locale"
 import LikeButton from "@/components/like-button"
+import { getAllProjects } from "@/lib/data"
 
 interface ProjectPageProps {
   params: {
     id: string
   }
+}
+
+export async function generateStaticParams() {
+  const projects = await getAllProjects()
+  return projects.map(project => ({
+    id: project.id
+  }))
 }
 
 export async function generateMetadata({

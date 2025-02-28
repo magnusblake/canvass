@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
-import prisma from "@/lib/prisma"
+import { getProjectById, toggleLike } from "@/lib/data"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
@@ -11,50 +11,17 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: {
-        email: session.user.email
-      }
-    })
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
-    }
-
-    const project = await prisma.project.findUnique({
-      where: { id: params.id }
-    })
+    const project = await getProjectById(params.id)
 
     if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 })
     }
 
-    const existingLike = await prisma.like.findFirst({
-      where: {
-        userId: user.id,
-        projectId: params.id
-      }
-    })
-
-    if (existingLike) {
-      // Unlike
-      await prisma.like.delete({
-        where: {
-          id: existingLike.id
-        }
-      })
-      return NextResponse.json({ liked: false })
-    } else {
-      // Like
-      await prisma.like.create({
-        data: {
-          userId: user.id,
-          projectId: params.id
-        }
-      })
-      return NextResponse.json({ liked: true })
-    }
+    const result = await toggleLike(session.user.id, params.id)
+    
+    return NextResponse.json(result)
   } catch (error) {
+    console.error("Error toggling like:", error)
     return NextResponse.json({ error: "Failed to like project" }, { status: 500 })
   }
 }

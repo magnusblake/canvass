@@ -1,12 +1,10 @@
-import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import NextAuth, { AuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import bcrypt from "bcrypt"
-import prisma from "@/lib/prisma"
+import { getUserByEmail, createUser } from "@/lib/data"
 
 export const authOptions: AuthOptions = {
-  adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -23,11 +21,7 @@ export const authOptions: AuthOptions = {
           throw new Error('Invalid credentials');
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email
-          }
-        });
+        const user = await getUserByEmail(credentials.email);
 
         if (!user || !user?.password) {
           throw new Error('Invalid credentials');
@@ -42,14 +36,55 @@ export const authOptions: AuthOptions = {
           throw new Error('Invalid credentials');
         }
 
-        return user;
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image
+        };
       }
     })
   ],
+  callbacks: {
+    async jwt({ token, user, account }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id as string;
+      }
+      return session;
+    },
+    async signIn({ user, account, profile }) {
+      // Для OAuth провайдеров (Google)
+      if (account && account.provider === 'google' && profile?.email) {
+        const existingUser = await getUserByEmail(profile.email);
+        
+        // Если пользователь не существует, создаем его
+        if (!existingUser) {
+          const newUser = await createUser({
+            name: profile.name || 'Google User',
+            email: profile.email,
+            image: profile.image || null
+          });
+          
+          if (newUser) {
+            user.id = newUser.id;
+          }
+        } else {
+          user.id = existingUser.id;
+        }
+      }
+      
+      return true;
+    }
+  },
   pages: {
     signIn: '/login',
   },
-  debug: process.env.NODE_ENV === 'development',
   session: {
     strategy: "jwt",
   },

@@ -7,11 +7,19 @@ import prisma from "@/lib/prisma"
 import { Heart, Eye, Calendar } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { ru } from "date-fns/locale"
+import db from "@/lib/db"
 
 interface ProfilePageProps {
   params: {
     id: string
   }
+}
+
+export async function generateStaticParams() {
+  const users = db.prepare('SELECT id FROM users').all()
+  return users.map(user => ({
+    id: user.id
+  }))
 }
 
 export async function generateMetadata({ params }: ProfilePageProps) {
