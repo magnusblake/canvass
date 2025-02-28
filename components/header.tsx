@@ -5,22 +5,13 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Package, User, Settings, LogOut } from "lucide-react"
+import { Search, Package } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { cn } from "@/lib/utils"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useAuth } from "@/contexts/AuthContext"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const { user, logout } = useAuth()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
@@ -75,44 +66,9 @@ export default function Header() {
             <Package className="h-5 w-5 text-muted-foreground" />
           </Button>
 
-          {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Image
-                    src={user.avatarUrl || `/placeholder.svg?height=32&width=32`}
-                    alt={user.name}
-                    className="rounded-full"
-                    width={32}
-                    height={32}
-                  />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuItem asChild>
-                  <Link href={`/profile/${user.id}`}>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Профиль</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings">
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Настройки</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Выйти</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <Button variant="outline" className="hidden md:inline-flex" asChild>
-              <Link href="/login">Войти</Link>
-            </Button>
-          )}
+          <Button variant="outline" className="hidden md:inline-flex">
+            Войти
+          </Button>
 
           <Button
             variant="ghost"
@@ -173,23 +129,9 @@ export default function Header() {
               Повышение прав
             </Button>
 
-            {user ? (
-              <>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href={`/profile/${user.id}`}>Профиль</Link>
-                </Button>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href="/settings">Настройки</Link>
-                </Button>
-                <Button variant="outline" className="w-full" onClick={logout}>
-                  Выйти
-                </Button>
-              </>
-            ) : (
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="/login">Войти</Link>
-              </Button>
-            )}
+            <Button variant="outline" className="w-full">
+              Войти
+            </Button>
           </div>
         </div>
       </div>

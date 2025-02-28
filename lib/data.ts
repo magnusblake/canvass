@@ -1,4 +1,4 @@
-import type { Project, Story, User, Subscription } from "./types"
+import type { Project, Story } from "./types"
 
 const projects: Project[] = [
   {
@@ -88,73 +88,6 @@ const stories: Story[] = [
   },
 ]
 
-const users: User[] = [
-  {
-    id: "user1",
-    name: "Анна Смирнова",
-    avatarUrl: "/users/anna-smirnova.jpg",
-    coverImageUrl: "/covers/anna-smirnova-cover.jpg",
-    email: "anna.smirnova@example.com",
-    subscriptionType: "premium",
-    bio: "UX/UI дизайнер с 5-летним опытом",
-    about:
-      "Я специализируюсь на создании интуитивно понятных и визуально привлекательных интерфейсов для веб- и мобильных приложений. Мой подход основан на глубоком понимании пользовательского опыта и современных тенденций дизайна.",
-    followers: 1250,
-    following: 350,
-    skills: ["UI Design", "UX Research", "Prototyping", "Figma", "Adobe XD"],
-    socialLinks: {
-      instagram: "https://instagram.com/anna.smirnova",
-      behance: "https://behance.net/anna.smirnova",
-      dribbble: "https://dribbble.com/anna.smirnova",
-    },
-    registrationDate: "2022-03-15T09:00:00Z",
-    awards: [
-      {
-        id: "award1",
-        name: "Лучший дизайн года",
-        description: "За выдающийся вклад в развитие UX/UI дизайна",
-        imageUrl: "/awards/best-design.svg",
-        dateReceived: "2023-12-01T00:00:00Z",
-      },
-    ],
-  },
-  {
-    id: "user2",
-    name: "Максим Петров",
-    avatarUrl: "/users/maxim-petrov.jpg",
-    coverImageUrl: "/covers/maxim-petrov-cover.jpg",
-    email: "maxim.petrov@example.com",
-    subscriptionType: "standard",
-    bio: "3D художник и аниматор",
-    about:
-      "Создаю реалистичные 3D модели и анимации для игр и фильмов. Мои работы отличаются вниманием к деталям и стремлением к фотореалистичности.",
-    followers: 980,
-    following: 210,
-    skills: ["3D Modeling", "Texturing", "Animation", "Blender", "Maya"],
-    socialLinks: {
-      instagram: "https://instagram.com/maxim.petrov",
-      twitter: "https://twitter.com/maxim.petrov",
-    },
-    registrationDate: "2022-05-20T14:30:00Z",
-    awards: [],
-  },
-]
-
-const subscriptions: Subscription[] = [
-  {
-    id: "sub1",
-    userId: "user2",
-    userName: "Максим Петров",
-    userAvatarUrl: "/users/maxim-petrov.jpg",
-  },
-  {
-    id: "sub2",
-    userId: "user3",
-    userName: "Елена Козлова",
-    userAvatarUrl: "/users/elena-kozlova.jpg",
-  },
-]
-
 export function getAllProjects(): Project[] {
   return projects
 }
@@ -173,29 +106,5 @@ export function getProjectsByCategory(category: string): Project[] {
 
 export function getAllStories(): Story[] {
   return stories
-}
-
-export function getUserById(id: string): User | undefined {
-  return users.find((user) => user.id === id)
-}
-
-export function getProjectsByUserId(userId: string): Project[] {
-  return projects.filter((project) => project.authorId === userId)
-}
-
-export function getSubscriptionsByUserId(userId: string): Subscription[] {
-  return subscriptions.filter((sub) => sub.userId === userId)
-}
-
-export function getFollowersByUserId(userId: string): Subscription[] {
-  // В реальном приложении здесь был бы запрос к базе данных
-  // Для демонстрации вернем фиктивные данные
-  return subscriptions
-}
-
-export function getRecommendedUsers(): User[] {
-  // В реальном приложении здесь была бы логика рекомендаций
-  // Для демонстрации вернем несколько пользователей
-  return users.slice(0, 4)
 }
 

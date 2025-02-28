@@ -115,7 +115,7 @@ export default function Stories({ stories: initialStories }: StoriesProps) {
         {stories.map((story, index) => (
           <div key={story.id} className="flex-shrink-0 cursor-pointer" onClick={() => openStory(index)}>
             <div
-              className={`w-20 h-20 rounded-lg overflow-hidden m-2 ${
+              className={`w-20 h-20 rounded-lg overflow-hidden ${
                 viewedStories.has(story.id) ? "" : "ring-2 ring-primary"
               }`}
             >
