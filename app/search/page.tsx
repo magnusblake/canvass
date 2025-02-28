@@ -3,7 +3,7 @@ import Header from "@/components/header"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search as SearchIcon } from "lucide-react"
-import prisma from "@/lib/prisma"
+import db from "@/lib/db" // Заменяем импорт prisma на db
 import Link from "next/link"
 import Image from "next/image"
 
@@ -58,30 +58,20 @@ async function SearchResults({ query }: { query: string }) {
     )
   }
 
-  const projects = await prisma.project.findMany({
-    where: {
-      OR: [
-        { title: { contains: query, mode: 'insensitive' } },
-        { description: { contains: query, mode: 'insensitive' } },
-        { tags: { has: query } },
-      ],
-    },
-    include: {
-      author: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      _count: {
-        select: { likes: true },
-      },
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-    take: 20,
-  })
+  // Используем SQL LIKE для поиска
+  const likeTerm = `%${query}%`
+  
+  // Выполняем поиск по базе данных с помощью SQLite
+  const projects = db.prepare(`
+    SELECT p.*, u.name as authorName, COUNT(l.id) as likes
+    FROM projects p
+    LEFT JOIN users u ON p.authorId = u.id
+    LEFT JOIN likes l ON p.id = l.projectId
+    WHERE p.title LIKE ? OR p.description LIKE ? OR p.tags LIKE ?
+    GROUP BY p.id
+    ORDER BY p.createdAt DESC
+    LIMIT 20
+  `).all(likeTerm, likeTerm, likeTerm);
 
   if (projects.length === 0) {
     return (
@@ -111,7 +101,7 @@ async function SearchResults({ query }: { query: string }) {
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-4">
                 <h3 className="font-semibold text-lg text-white truncate">{project.title}</h3>
-                <span className="text-sm text-white/80">{project.author.name}</span>
+                <span className="text-sm text-white/80">{project.authorName}</span>
               </div>
             </div>
           </Link>

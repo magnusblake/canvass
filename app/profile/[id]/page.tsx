@@ -3,11 +3,11 @@ import Image from "next/image"
 import Link from "next/link"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Header from "@/components/header"
-import prisma from "@/lib/prisma"
+import { getUserById } from "@/lib/data"
+import db from "@/lib/db" // Заменяем импорт prisma на db
 import { Heart, Eye, Calendar } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { ru } from "date-fns/locale"
-import db from "@/lib/db"
 
 interface ProfilePageProps {
   params: {
@@ -15,17 +15,16 @@ interface ProfilePageProps {
   }
 }
 
+// Добавляем функцию для статического экспорта
 export async function generateStaticParams() {
-  const users = db.prepare('SELECT id FROM users').all()
+  const users = db.prepare('SELECT id FROM users').all();
   return users.map(user => ({
     id: user.id
-  }))
+  }));
 }
 
 export async function generateMetadata({ params }: ProfilePageProps) {
-  const user = await prisma.user.findUnique({
-    where: { id: params.id },
-  })
+  const user = await getUserById(params.id);
 
   if (!user) {
     return {
@@ -40,26 +39,16 @@ export async function generateMetadata({ params }: ProfilePageProps) {
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
-  const user = await prisma.user.findUnique({
-    where: { id: params.id },
-    include: {
-      projects: {
-        orderBy: { createdAt: "desc" },
-        include: {
-          _count: {
-            select: { likes: true },
-          },
-        },
-      },
-    },
-  })
+  const user = await getUserById(params.id);
 
   if (!user) {
     notFound()
   }
 
-  const totalProjects = user.projects.length
-  const totalLikes = user.projects.reduce((acc, project) => acc + project._count.likes, 0)
+  const totalProjects = user.projects?.length || 0;
+  
+  // Подсчет общего количества лайков для всех проектов пользователя
+  const totalLikes = user.projects?.reduce((acc, project) => acc + project.likes, 0) || 0;
 
   return (
     <main className="min-h-screen bg-background">
@@ -114,7 +103,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               </TabsList>
 
               <TabsContent value="projects">
-                {user.projects.length > 0 ? (
+                {user.projects && user.projects.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {user.projects.map((project) => (
                       <Link
@@ -133,7 +122,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                           <div className="absolute top-3 right-3 flex items-center space-x-2 bg-black/50 rounded-full px-3 py-1">
                             <div className="flex items-center text-sm text-white">
                               <Heart className="h-4 w-4 mr-1" />
-                              {project._count.likes}
+                              {project.likes}
                             </div>
                             <div className="flex items-center text-sm text-white">
                               <Eye className="h-4 w-4 mr-1" />
@@ -158,7 +147,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               </TabsContent>
 
               <TabsContent value="featured">
-                {user.projects.filter((p) => p.featured).length > 0 ? (
+                {user.projects && user.projects.filter((p) => p.featured).length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {user.projects
                       .filter((p) => p.featured)
@@ -179,7 +168,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                             <div className="absolute top-3 right-3 flex items-center space-x-2 bg-black/50 rounded-full px-3 py-1">
                               <div className="flex items-center text-sm text-white">
                                 <Heart className="h-4 w-4 mr-1" />
-                                {project._count.likes}
+                                {project.likes}
                               </div>
                               <div className="flex items-center text-sm text-white">
                                 <Eye className="h-4 w-4 mr-1" />
