@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -36,10 +36,12 @@ export default function CompanyRegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [step, setStep] = useState(1)
 
-  if (!user) {
-    router.push("/login?redirect=/companies/register")
-    return null
-  }
+  useEffect(() => {
+    // Redirect on client side if not authenticated
+    if (!user) {
+      router.push("/login?redirect=/companies/register")
+    }
+  }, [user, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -167,6 +169,18 @@ export default function CompanyRegisterPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // If not authenticated, show loading or nothing while redirecting
+  if (!user) {
+    return (
+      <main className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-12 flex items-center justify-center">
+          <p>Перенаправление на страницу входа...</p>
+        </div>
+      </main>
+    )
   }
 
   return (

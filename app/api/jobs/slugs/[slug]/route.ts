@@ -5,6 +5,10 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request, { params }: { params: { slug: string } }) {
   try {
+    if (!params.slug) {
+      return NextResponse.json({ error: "Slug parameter is required" }, { status: 400 })
+    }
+    
     const job = await getJobBySlug(params.slug)
 
     if (!job) {

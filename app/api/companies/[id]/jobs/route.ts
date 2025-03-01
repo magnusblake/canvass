@@ -1,4 +1,5 @@
-import { getJobsByCompany } from "@/lib/data"
+import { NextResponse } from "next/server"
+import { getJobsByCompany, getCompanyById } from "@/lib/data"
 
 export const dynamic = 'force-dynamic';
 
