@@ -9,7 +9,8 @@ interface CommentProps {
     id: string;
     content: string;
     userId: string;
-    projectId: string;
+    postId?: string;      // Making this optional to work with both blog and project comments
+    projectId?: string;   // Making this optional to work with both blog and project comments
     createdAt: string;
     userName: string;
     userImage: string | null;
@@ -50,3 +51,6 @@ export default function CommentItem({ comment }: CommentProps) {
     </div>
   );
 }
+
+// Re-export for backward compatibility
+export { CommentItem };

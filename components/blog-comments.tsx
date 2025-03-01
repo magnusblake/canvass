@@ -7,7 +7,7 @@ import { Textarea } from "./ui/textarea";
 import { Card } from "./ui/card";
 import { Separator } from "./ui/separator";
 import { toast } from "sonner";
-import { CommentItem } from "./comment-item";
+import CommentItem from "./comment-item"; // Fixed import
 import { useRouter } from "next/navigation";
 
 interface BlogComment {

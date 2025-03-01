@@ -115,6 +115,7 @@ CREATE TABLE IF NOT EXISTS saved_projects (
   FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE CASCADE,
   UNIQUE(userId, projectId)
+);
 
 -- Посты блога
 CREATE TABLE IF NOT EXISTS blog_posts (
