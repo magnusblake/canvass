@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { User } from "@/lib/types"
-import ProfileBadge from "./profile-badge"
+import ProfileBadge from "./premium-badge"
 import FollowButton from "./follow-button"
 import { useRouter } from "next/navigation"
 

@@ -2,7 +2,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ru } from "date-fns/locale";
 import Image from "next/image";
 import Link from "next/link";
-import ProfileBadge from "./profile-badge";
+import ProfileBadge from "./premium-badge";
 
 interface CommentProps {
   comment: {

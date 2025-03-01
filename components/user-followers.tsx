@@ -2,7 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { User } from "@/lib/types"
 import { Button } from "./ui/button"
-import ProfileBadge from "./profile-badge"
+import ProfileBadge from "./premium-badge"
 
 interface UserFollowersProps {
   users: User[]
