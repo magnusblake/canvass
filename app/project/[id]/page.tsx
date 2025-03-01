@@ -2,14 +2,17 @@ import { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { getProjectById } from "@/lib/data"
+import { getProjectById, getAllProjects, getSimilarProjects } from "@/lib/data"
 import Header from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Heart, Eye, Calendar, Tag, ChevronLeft } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { ru } from "date-fns/locale"
 import LikeButton from "@/components/like-button"
-import { getAllProjects } from "@/lib/data"
+import CommentsSection from "@/components/comments-section"
+import SaveButton from "@/components/save-button"
+import TagBadge from "@/components/tag-badge"
+import SimilarProjects from "@/components/similar-projects"
 
 interface ProjectPageProps {
   params: {
@@ -43,6 +46,7 @@ export async function generateMetadata({
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const project = await getProjectById(params.id)
+  const similarProjects = await getSimilarProjects(params.id)
 
   if (!project) {
     notFound()
@@ -79,12 +83,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
             <div className="flex flex-wrap gap-2 mb-8">
               {project.tags.map((tag) => (
-                <div
-                  key={tag}
-                  className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm"
-                >
-                  {tag}
-                </div>
+                <TagBadge key={tag} tag={tag} />
               ))}
             </div>
           </div>
@@ -146,10 +145,23 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
               <div className="flex flex-col gap-3">
                 <LikeButton projectId={project.id} initialLikes={project.likes} />
-                <Button variant="outline" className="w-full">
-                  Поделиться
-                </Button>
+                <div className="flex gap-2">
+                  <SaveButton projectId={project.id} className="flex-1" />
+                  <Button variant="outline" className="flex-1">
+                    Поделиться
+                  </Button>
+                </div>
               </div>
+              
+              <div className="mt-12">
+                <CommentsSection projectId={project.id} />
+              </div>
+              
+              {similarProjects.length > 0 && (
+                <div className="mt-16">
+                  <SimilarProjects projects={similarProjects} />
+                </div>
+              )}
             </div>
           </div>
         </div>

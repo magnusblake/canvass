@@ -185,6 +185,36 @@ export async function updateProject(id: string, data: {
   return getProjectById(id);
 }
 
+export async function getSimilarProjects(projectId: string, limit: number = 4): Promise<Project[]> {
+  // Получаем текущий проект
+  const project = await getProjectById(projectId);
+  
+  if (!project) {
+    return [];
+  }
+  
+  // Поиск проектов с похожими тегами или в той же категории
+  const stmt = db.prepare(`
+    SELECT p.*, u.name as authorName, COUNT(l.id) as likeCount 
+    FROM projects p
+    LEFT JOIN users u ON p.authorId = u.id
+    LEFT JOIN likes l ON p.id = l.projectId
+    WHERE p.id != ? AND (p.category = ? OR p.tags LIKE ?)
+    GROUP BY p.id
+    ORDER BY RANDOM()
+    LIMIT ?
+  `);
+  
+  const rows = stmt.all(
+    projectId,
+    project.category,
+    `%${project.tags[0] || ''}%`,
+    limit
+  );
+  
+  return rows.map(projectFromDb);
+}
+
 export async function deleteProject(id: string): Promise<boolean> {
   const stmt = db.prepare('DELETE FROM projects WHERE id = ?');
   const result = stmt.run(id);

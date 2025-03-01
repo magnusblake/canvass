@@ -1,60 +1,74 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "./ui/button"
-import { Input } from "./ui/input"
-import { toast } from "sonner"
-import { Camera, RefreshCw } from "lucide-react"
-import Image from "next/image"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { toast } from "sonner";
+import { Camera, RefreshCw } from "lucide-react";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 interface ProfileImageUploadProps {
-  type: "avatar" | "banner"
-  currentUrl?: string | null
-  onUpload: (url: string) => void
-  className?: string
+  type: "avatar" | "banner";
+  currentUrl?: string | null;
+  onUpload: (url: string) => void;
+  className?: string;
 }
 
 export default function ProfileImageUpload({ type, currentUrl, onUpload, className }: ProfileImageUploadProps) {
-  const [isUploading, setIsUploading] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(currentUrl || null)
+  const [isUploading, setIsUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(currentUrl || null);
   
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Проверка на разрешенные типы файлов
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Пожалуйста, загрузите изображение в формате JPG, PNG, WEBP или GIF");
+      return;
+    }
+
+    // Проверка на максимальный размер файла (5 МБ)
+    const maxSize = 5 * 1024 * 1024; // 5 МБ
+    if (file.size > maxSize) {
+      toast.error("Размер файла не должен превышать 5 МБ");
+      return;
+    }
     
     // Показать локальный предпросмотр
-    const objectUrl = URL.createObjectURL(file)
-    setPreviewUrl(objectUrl)
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
     
     // Загрузить файл на сервер
-    setIsUploading(true)
+    setIsUploading(true);
     
     try {
-      const formData = new FormData()
-      formData.append("file", file)
-      formData.append("type", type)
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", type);
       
       const response = await fetch("/api/upload", {
         method: "POST",
         body: formData
-      })
+      });
       
       if (!response.ok) {
-        throw new Error("Failed to upload image")
+        throw new Error("Failed to upload image");
       }
       
-      const { imageUrl } = await response.json()
-      onUpload(imageUrl)
-      toast.success(`${type === "avatar" ? "Аватар" : "Баннер"} успешно загружен`)
+      const { imageUrl } = await response.json();
+      onUpload(imageUrl);
+      toast.success(`${type === "avatar" ? "Аватар" : "Баннер"} успешно загружен`);
     } catch (error) {
-      toast.error(`Не удалось загрузить ${type === "avatar" ? "аватар" : "баннер"}`)
+      toast.error(`Не удалось загрузить ${type === "avatar" ? "аватар" : "баннер"}`);
       // Вернуть предыдущий URL в случае ошибки
-      setPreviewUrl(currentUrl)
+      setPreviewUrl(currentUrl);
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
   
   if (type === "avatar") {
     return (
@@ -69,7 +83,7 @@ export default function ProfileImageUpload({ type, currentUrl, onUpload, classNa
           <label className="cursor-pointer">
             <Input
               type="file"
-              accept="image/*"
+              accept="image/jpeg, image/png, image/webp, image/gif"
               onChange={handleFileChange}
               className="hidden"
               disabled={isUploading}
@@ -82,7 +96,7 @@ export default function ProfileImageUpload({ type, currentUrl, onUpload, classNa
           </label>
         </div>
       </div>
-    )
+    );
   }
   
   return (
@@ -99,7 +113,7 @@ export default function ProfileImageUpload({ type, currentUrl, onUpload, classNa
         <label>
           <Input
             type="file"
-            accept="image/*"
+            accept="image/jpeg, image/png, image/webp, image/gif"
             onChange={handleFileChange}
             className="hidden"
             disabled={isUploading}
@@ -115,5 +129,5 @@ export default function ProfileImageUpload({ type, currentUrl, onUpload, classNa
         </label>
       </div>
     </div>
-  )
+  );
 }

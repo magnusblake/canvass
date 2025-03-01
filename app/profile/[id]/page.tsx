@@ -69,19 +69,21 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       <Header />
       
       {/* Banner */}
-      <div className="relative w-full h-48 md:h-64 lg:h-80 bg-gradient-to-r from-primary/10 to-primary/5">
-        {user.banner && (
-          <Image
-            src={user.banner}
-            alt={user.name}
-            fill
-            className="object-cover"
-            priority
-          />
-        )}
+      <div className="mb-24 relative">
+        <div className="w-full h-48 md:h-64 lg:h-80 bg-gradient-to-r from-primary/10 to-primary/5">
+          {user.banner && (
+            <Image
+              src={user.banner}
+              alt={user.name}
+              fill
+              className="object-cover"
+              priority
+            />
+          )}
+        </div>
       </div>
       
-      <div className="container mx-auto px-4 -mt-24">
+      <div className="container mx-auto px-4" style={{ marginTop: "-6rem" }}>
         <div className="flex flex-col md:flex-row gap-8">
           <div className="md:w-1/3">
             <div className="bg-card border rounded-lg p-6 shadow-sm">

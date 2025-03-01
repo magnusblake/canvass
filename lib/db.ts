@@ -94,6 +94,28 @@ CREATE TABLE IF NOT EXISTS stories (
   link TEXT NOT NULL,
   createdAt TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- Комментарии
+CREATE TABLE IF NOT EXISTS comments (
+  id TEXT PRIMARY KEY,
+  content TEXT NOT NULL,
+  projectId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Сохраненные проекты
+CREATE TABLE IF NOT EXISTS saved_projects (
+  id TEXT PRIMARY KEY,
+  userId TEXT NOT NULL,
+  projectId TEXT NOT NULL,
+  createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (projectId) REFERENCES projects(id) ON DELETE CASCADE,
+  UNIQUE(userId, projectId)
+);
 `;
 
 // Выполняем скрипт создания таблиц

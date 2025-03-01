@@ -1,27 +1,20 @@
-import { FaCrown } from "react-icons/fa"
-import { cn } from "@/lib/utils"
+import { FaCrown } from "react-icons/fa";
+import { cn } from "@/lib/utils";
 
-interface ProfileBadgeProps {
-  type: "premium" | "standard"
-  size?: "sm" | "md" | "lg"
-  className?: string
+interface PremiumBadgeProps {
+  className?: string;
 }
 
-export default function ProfileBadge({ type, size = "md", className }: ProfileBadgeProps) {
+export default function PremiumBadge({ className }: PremiumBadgeProps) {
   return (
-    <span 
+    <div 
       className={cn(
-        "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
-        type === "premium" 
-          ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300" 
-          : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-        size === "sm" && "text-[10px] px-1.5 py-0.5",
-        size === "lg" && "text-sm px-2.5 py-1",
+        "flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium",
         className
       )}
     >
-      {type === "premium" && <FaCrown className="mr-1" />}
-      {type === "premium" ? "Премиум" : "Стандарт"}
-    </span>
-  )
+      <FaCrown className="h-3 w-3" />
+      <span>CanvasX</span>
+    </div>
+  );
 }
