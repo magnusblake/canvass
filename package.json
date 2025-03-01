@@ -50,6 +50,7 @@
     "embla-carousel-react": "8.5.1",
     "framer-motion": "latest",
     "input-otp": "1.4.1",
+    "jose": "^5.2.2",
     "lucide-react": "^0.454.0",
     "next": "14.2.16",
     "next-auth": "^4.24.3",
@@ -67,7 +68,9 @@
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^9.0.1",
     "vaul": "^0.9.6",
-    "zod": "^3.24.1"
+    "zod": "^3.24.1",
+    "canvas": "latest",
+    "sharp": "latest"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.8",
