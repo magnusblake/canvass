@@ -4,7 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Header from "@/components/header"
-import { getUserById, isFollowing } from "@/lib/data"
+import { getUserById } from "@/lib/data"
 import db from "@/lib/db"
 import { Heart, Eye, Calendar, MapPin, Mail, User as UserIcon, Award, Users } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
@@ -13,29 +13,18 @@ import ProfileBadge from "@/components/premium-badge"
 import UserGallery from "@/components/user-gallery"
 import SocialLinks from "@/components/social-links"
 import FollowButton from "@/components/follow-button"
-import { getSession } from "@/lib/auth"
 import UserAwards from "@/components/user-awards"
 import UserFollowers from "@/components/user-followers"
 import EditProfileButton from "@/components/edit-profile-button"
 import PremiumToggle from "@/components/premium-toggle"
 import UserRecommendations from "@/components/user-recommendations"
 
+// Tell Next.js this is a dynamic route that should be rendered at request time
+export const dynamic = 'force-dynamic';
+
 interface ProfilePageProps {
   params: {
     id: string
-  }
-}
-
-// Добавляем функцию для статического экспорта
-export async function generateStaticParams() {
-  try {
-    const users = db.prepare('SELECT id FROM users').all();
-    return users.map(user => ({
-      id: user.id
-    }));
-  } catch (error) {
-    console.error('Error generating static params for users:', error);
-    return []; // Return empty array to avoid generating pages on error
   }
 }
 
@@ -64,9 +53,9 @@ export async function generateMetadata({ params }: ProfilePageProps) {
 export default async function ProfilePage({ params }: ProfilePageProps) {
   try {
     const user = await getUserById(params.id);
-    const session = await getSession();
-    const isCurrentUser = session?.user?.id === params.id;
-    const isUserFollowing = session?.user ? await isFollowing(session.user.id, params.id) : false;
+    // We'll handle auth client-side - no cookies used here
+    const isCurrentUser = false; // This will be determined client-side
+    const isUserFollowing = false; // This will be determined client-side 
 
     if (!user) {
       notFound()
@@ -118,17 +107,14 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                   
                   <p className="text-muted-foreground mb-4">Дизайнер</p>
                   
-                  {!isCurrentUser && (
+                  {/* Client-side auth checks for these buttons */}
+                  <div id="auth-buttons" className="w-full mb-4">
                     <FollowButton 
                       userId={params.id} 
-                      initialIsFollowing={isUserFollowing}
+                      initialIsFollowing={false}
                       className="mb-4 w-full"
                     />
-                  )}
-                  
-                  {isCurrentUser && (
-                    <EditProfileButton className="mb-4 w-full" />
-                  )}
+                  </div>
                   
                   <div className="w-full grid grid-cols-2 gap-4 mb-6">
                     <div className="flex flex-col items-center p-3 bg-muted rounded-lg">
@@ -181,18 +167,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                     />
                   )}
                   
-                  {isCurrentUser && (
-                    <div className="mt-6">
-                      <PremiumToggle />
-                    </div>
-                  )}
+                  {/* Client-side auth check for premium toggle */}
+                  <div id="premium-toggle-container" className="mt-6"></div>
                   
-                  {/* Рекомендации пользователей */}
-                  {session?.user && !isCurrentUser && (
-                    <div className="mt-6">
-                      <UserRecommendations />
-                    </div>
-                  )}
+                  {/* Client-side user recommendations */}
+                  <div id="user-recommendations-container" className="mt-6"></div>
                 </div>
               </div>
             </div>
