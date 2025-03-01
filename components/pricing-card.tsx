@@ -1,22 +1,24 @@
-import Link from "next/link"
-import { Check } from "lucide-react"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
+// components/pricing-card.tsx
+import React from "react";
+import Link from "next/link";
+import { Check } from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface PricingCardProps {
-  title: string
-  description: string
-  price: string
-  duration: string
-  features: string[]
-  buttonText: string
-  buttonLink?: string
-  buttonVariant?: "default" | "outline" | "secondary"
-  popular?: boolean
-  disabled?: boolean
-  badge?: string
+  title: string;
+  description: string;
+  price: string;
+  duration: string;
+  features: string[];
+  buttonText: string;
+  buttonLink?: string;
+  buttonVariant?: "default" | "outline" | "secondary";
+  popular?: boolean;
+  disabled?: boolean;
+  badge?: string;
 }
 
 export default function PricingCard({
@@ -33,14 +35,21 @@ export default function PricingCard({
   badge,
 }: PricingCardProps) {
   return (
-    <Card className={cn("flex flex-col h-full", popular && "border-primary shadow-lg")}>
+    <Card className={cn(
+      "flex flex-col h-full",
+      popular && "border-primary shadow-lg"
+    )}>
       <CardHeader className="flex flex-col items-start gap-4 pb-4">
         {popular && (
           <Badge variant="default" className="bg-primary">
             Рекомендуемый
           </Badge>
         )}
-        {badge && !popular && <Badge variant="outline">{badge}</Badge>}
+        {badge && !popular && (
+          <Badge variant="outline">
+            {badge}
+          </Badge>
+        )}
         <div>
           <h3 className="text-2xl font-bold">{title}</h3>
           <p className="text-sm text-muted-foreground">{description}</p>
@@ -61,11 +70,21 @@ export default function PricingCard({
         </ul>
       </CardContent>
       <CardFooter>
-        <Button variant={buttonVariant} className="w-full" asChild={!disabled} disabled={disabled}>
-          {!disabled ? <Link href={buttonLink}>{buttonText}</Link> : buttonText}
+        <Button
+          variant={buttonVariant}
+          className="w-full"
+          asChild={!disabled}
+          disabled={disabled}
+        >
+          {!disabled ? (
+            <Link href={buttonLink}>
+              {buttonText}
+            </Link>
+          ) : (
+            buttonText
+          )}
         </Button>
       </CardFooter>
     </Card>
-  )
+  );
 }
-

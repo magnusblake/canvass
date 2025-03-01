@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
     // Хешируем пароль
     const hashedPassword = await bcrypt.hash(password, 12)
-
+    
     // Создаем URL стандартного аватара
     const defaultAvatarUrl = `/api/avatar?name=${encodeURIComponent(name)}`
 
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       email,
       password: hashedPassword,
       image: defaultAvatarUrl,
-      premium: false,
+      premium: false
     })
 
     // Создаем JWT-токен для сессии
@@ -40,17 +40,17 @@ export async function POST(req: Request) {
       name: user.name,
       email: user.email,
       image: user.image,
-      premium: user.premium,
+      premium: user.premium
     })
 
     // Устанавливаем куки
     cookies().set({
-      name: "session",
+      name: 'session',
       value: token,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60 * 24 * 7, // 7 дней
-      path: "/",
+      path: '/',
     })
 
     return NextResponse.json({
@@ -60,12 +60,11 @@ export async function POST(req: Request) {
         name: user.name,
         email: user.email,
         image: user.image,
-        premium: user.premium,
-      },
+        premium: user.premium
+      }
     })
   } catch (error) {
     console.error("Registration error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
-

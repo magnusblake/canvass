@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, ReactNode } from "react"
 
 export interface User {
   id: string
@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     async function loadUserFromSession() {
       setIsLoading(true)
       try {
-        const res = await fetch("/api/auth/session")
+        const res = await fetch('/api/auth/session')
         if (res.ok) {
           const data = await res.json()
           if (data.user) {
@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         }
       } catch (error) {
-        console.error("Failed to load user session:", error)
+        console.error('Failed to load user session:', error)
       } finally {
         setIsLoading(false)
       }
@@ -56,9 +56,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
 
@@ -69,16 +69,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       return false
     } catch (error) {
-      console.error("Login error:", error)
+      console.error('Login error:', error)
       return false
     }
   }
 
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
       })
 
@@ -89,21 +89,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       return false
     } catch (error) {
-      console.error("Registration error:", error)
+      console.error('Registration error:', error)
       return false
     }
   }
 
   const logout = async (): Promise<void> => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" })
+      await fetch('/api/auth/logout', { method: 'POST' })
       setUser(null)
-      window.location.href = "/"
+      window.location.href = '/'
     } catch (error) {
-      console.error("Logout error:", error)
+      console.error('Logout error:', error)
     }
   }
-
+  
   const updateUser = (userData: Partial<User>) => {
     if (user) {
       setUser({ ...user, ...userData })
@@ -124,4 +124,3 @@ export const useAuth = () => {
   }
   return context
 }
-

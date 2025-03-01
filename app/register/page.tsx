@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -24,7 +22,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
+    
     if (password !== confirmPassword) {
       toast.error("Пароли не совпадают")
       return
@@ -167,4 +165,3 @@ export default function RegisterPage() {
     </div>
   )
 }
-

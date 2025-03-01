@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -22,12 +22,14 @@ interface ProjectPageProps {
 
 export async function generateStaticParams() {
   const projects = await getAllProjects()
-  return projects.map((project) => ({
-    id: project.id,
+  return projects.map(project => ({
+    id: project.id
   }))
 }
 
-export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: ProjectPageProps): Promise<Metadata> {
   const project = await getProjectById(params.id)
 
   if (!project) {
@@ -56,7 +58,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     <main className="min-h-screen bg-background">
       <Header />
       <div className="container mx-auto px-4 py-8">
-        <Link href="/" className="inline-flex items-center text-sm mb-6 hover:text-primary transition-colors">
+        <Link
+          href="/"
+          className="inline-flex items-center text-sm mb-6 hover:text-primary transition-colors"
+        >
           <ChevronLeft className="mr-1 h-4 w-4" />
           Назад
         </Link>
@@ -64,7 +69,13 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden shadow-lg mb-6">
-              <Image src={project.image} alt={project.title} fill className="object-cover" priority />
+              <Image
+                src={project.image}
+                alt={project.title}
+                fill
+                className="object-cover"
+                priority
+              />
             </div>
 
             <h1 className="text-3xl font-bold mb-2">{project.title}</h1>
@@ -119,7 +130,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                     <Calendar className="h-4 w-4 mr-2" />
                     Дата публикации
                   </div>
-                  <div className="font-medium">{formatDistanceToNow(createdDate, { addSuffix: true, locale: ru })}</div>
+                  <div className="font-medium">
+                    {formatDistanceToNow(createdDate, { addSuffix: true, locale: ru })}
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <div className="flex items-center text-muted-foreground">
@@ -139,11 +152,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   </Button>
                 </div>
               </div>
-
+              
               <div className="mt-12">
                 <CommentsSection projectId={project.id} />
               </div>
-
+              
               {similarProjects.length > 0 && (
                 <div className="mt-16">
                   <SimilarProjects projects={similarProjects} />
@@ -156,4 +169,3 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     </main>
   )
 }
-

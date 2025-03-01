@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import type { User } from "@/lib/types"
+import { User } from "@/lib/types"
 import ProfileBadge from "./premium-badge"
 import FollowButton from "./follow-button"
 import { useRouter } from "next/navigation"
@@ -12,12 +12,12 @@ export default function UserRecommendations() {
   const router = useRouter()
   const [recommendations, setRecommendations] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
-
+  
   useEffect(() => {
     async function fetchRecommendations() {
       try {
         const response = await fetch("/api/users/recommendations")
-
+        
         if (response.ok) {
           const data = await response.json()
           setRecommendations(data)
@@ -28,10 +28,10 @@ export default function UserRecommendations() {
         setIsLoading(false)
       }
     }
-
+    
     fetchRecommendations()
   }, [])
-
+  
   if (isLoading) {
     return (
       <div className="p-6 bg-card rounded-lg border">
@@ -50,16 +50,16 @@ export default function UserRecommendations() {
       </div>
     )
   }
-
+  
   if (recommendations.length === 0) {
     return null
   }
-
+  
   return (
     <div className="p-6 bg-card rounded-lg border">
       <h3 className="text-lg font-semibold mb-4">Рекомендуемые дизайнеры</h3>
       <div className="space-y-4">
-        {recommendations.map((user) => (
+        {recommendations.map(user => (
           <div key={user.id} className="flex items-center gap-3">
             <Link href={`/profile/${user.id}`} className="relative w-10 h-10 flex-shrink-0">
               <Image
@@ -76,7 +76,9 @@ export default function UserRecommendations() {
                 </Link>
                 {user.premium && <ProfileBadge type="premium" size="sm" />}
               </div>
-              {user.bio && <p className="text-xs text-muted-foreground truncate">{user.bio}</p>}
+              {user.bio && (
+                <p className="text-xs text-muted-foreground truncate">{user.bio}</p>
+              )}
             </div>
             <FollowButton userId={user.id} initialIsFollowing={false} className="h-8" />
           </div>
@@ -85,4 +87,3 @@ export default function UserRecommendations() {
     </div>
   )
 }
-

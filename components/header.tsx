@@ -1,14 +1,12 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Plus, LogOut, User } from "lucide-react"
+import { Search, Package, Plus, LogOut, User } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,7 +54,10 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-3">
-          <form onSubmit={handleSearch} className="relative hidden md:flex items-center">
+          <form
+            onSubmit={handleSearch}
+            className="relative hidden md:flex items-center"
+          >
             <input
               type="text"
               placeholder="Поиск проектов"
@@ -164,8 +165,8 @@ export default function Header() {
 
           <div className="relative flex items-center">
             <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              className="pl-9"
+            <Input 
+              className="pl-9" 
               placeholder="Поиск"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -200,7 +201,11 @@ export default function Header() {
                   Профиль
                 </Button>
 
-                <Button variant="outline" className="w-full" onClick={() => logout()}>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => logout()}
+                >
                   <LogOut className="h-4 w-4 mr-2" />
                   Выйти
                 </Button>
@@ -223,4 +228,3 @@ export default function Header() {
     </header>
   )
 }
-

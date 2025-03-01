@@ -1,5 +1,5 @@
 import "next-auth"
-import type { User } from "@/contexts/AuthContext"
+import { User } from "@/contexts/AuthContext"
 
 declare module "next-auth" {
   interface Session {
@@ -12,4 +12,3 @@ declare module "next-auth/jwt" {
     id: string
   }
 }
-

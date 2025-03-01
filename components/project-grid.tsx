@@ -1,14 +1,14 @@
-import Image from "next/image"
-import Link from "next/link"
-import { Heart, Eye } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
-import { ru } from "date-fns/locale"
-import type { Project } from "@/lib/types"
-import SaveButton from "./save-button"
-import LikeButton from "./like-button"
+import Image from "next/image";
+import Link from "next/link";
+import { Heart, Eye, Bookmark } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { ru } from "date-fns/locale";
+import { Project } from "@/lib/types";
+import SaveButton from "./save-button";
+import LikeButton from "./like-button";
 
 interface ProjectGridProps {
-  projects: Project[]
+  projects: Project[];
 }
 
 export default function ProjectGrid({ projects }: ProjectGridProps) {
@@ -43,7 +43,7 @@ export default function ProjectGrid({ projects }: ProjectGridProps) {
               </div>
             </div>
           </Link>
-
+          
           <div className="absolute top-3 left-3 flex space-x-2">
             <SaveButton projectId={project.id} />
             <LikeButton projectId={project.id} initialLikes={project.likes} variant="icon" />
@@ -51,6 +51,5 @@ export default function ProjectGrid({ projects }: ProjectGridProps) {
         </div>
       ))}
     </div>
-  )
+  );
 }
-

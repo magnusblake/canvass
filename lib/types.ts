@@ -50,4 +50,3 @@ export interface Award {
   image: string
   date: string
 }
-

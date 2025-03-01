@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import type { User } from "@/lib/types"
+import { User } from "@/lib/types"
 import { Button } from "./ui/button"
 import ProfileBadge from "./premium-badge"
 
@@ -26,7 +26,9 @@ export default function UserFollowers({ users }: UserFollowersProps) {
               <h3 className="font-semibold truncate">{user.name}</h3>
               {user.premium && <ProfileBadge type="premium" size="sm" />}
             </div>
-            {user.bio && <p className="text-sm text-muted-foreground truncate">{user.bio}</p>}
+            {user.bio && (
+              <p className="text-sm text-muted-foreground truncate">{user.bio}</p>
+            )}
           </div>
           <Button size="sm" variant="outline" asChild>
             <Link href={`/profile/${user.id}`}>Профиль</Link>
@@ -36,4 +38,3 @@ export default function UserFollowers({ users }: UserFollowersProps) {
     </div>
   )
 }
-
