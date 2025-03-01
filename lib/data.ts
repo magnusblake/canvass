@@ -500,3 +500,337 @@ export async function getUserAwards(userId: string): Promise<Award[]> {
   const stmt = db.prepare('SELECT * FROM awards WHERE userId = ? ORDER BY date DESC');
   return stmt.all(userId);
 }
+function blogPostFromDb(row: any): BlogPost {
+  return {
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    content: row.content,
+    excerpt: row.excerpt,
+    coverImage: row.coverImage,
+    author: row.authorName,
+    authorId: row.authorId,
+    authorImage: row.authorImage,
+    category: row.category,
+    tags: JSON.parse(row.tags),
+    featured: Boolean(row.featured),
+    published: Boolean(row.published),
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt
+  };
+}
+
+export async function getAllBlogPosts(includeUnpublished = false): Promise<BlogPost[]> {
+  const query = `
+    SELECT b.*, u.name as authorName, u.image as authorImage
+    FROM blog_posts b
+    LEFT JOIN users u ON b.authorId = u.id
+    ${includeUnpublished ? '' : 'WHERE b.published = 1'}
+    ORDER BY b.createdAt DESC
+  `;
+  
+  const stmt = db.prepare(query);
+  const rows = stmt.all();
+  return rows.map(blogPostFromDb);
+}
+
+export async function getFeaturedBlogPosts(): Promise<BlogPost[]> {
+  const stmt = db.prepare(`
+    SELECT b.*, u.name as authorName, u.image as authorImage
+    FROM blog_posts b
+    LEFT JOIN users u ON b.authorId = u.id
+    WHERE b.featured = 1 AND b.published = 1
+    ORDER BY b.createdAt DESC
+  `);
+  
+  const rows = stmt.all();
+  return rows.map(blogPostFromDb);
+}
+
+export async function getBlogPostById(id: string): Promise<BlogPost | null> {
+  const stmt = db.prepare(`
+    SELECT b.*, u.name as authorName, u.image as authorImage
+    FROM blog_posts b
+    LEFT JOIN users u ON b.authorId = u.id
+    WHERE b.id = ?
+  `);
+  
+  const row = stmt.get(id);
+  if (!row) return null;
+  
+  return blogPostFromDb(row);
+}
+
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+  const stmt = db.prepare(`
+    SELECT b.*, u.name as authorName, u.image as authorImage
+    FROM blog_posts b
+    LEFT JOIN users u ON b.authorId = u.id
+    WHERE b.slug = ?
+  `);
+  
+  const row = stmt.get(slug);
+  if (!row) return null;
+  
+  return blogPostFromDb(row);
+}
+
+export async function getBlogPostsByCategory(category: string): Promise<BlogPost[]> {
+  const stmt = db.prepare(`
+    SELECT b.*, u.name as authorName, u.image as authorImage
+    FROM blog_posts b
+    LEFT JOIN users u ON b.authorId = u.id
+    WHERE b.category = ? AND b.published = 1
+    ORDER BY b.createdAt DESC
+  `);
+  
+  const rows = stmt.all(category);
+  return rows.map(blogPostFromDb);
+}
+
+export async function getBlogPostsByTag(tag: string): Promise<BlogPost[]> {
+  const stmt = db.prepare(`
+    SELECT b.*, u.name as authorName, u.image as authorImage
+    FROM blog_posts b
+    LEFT JOIN users u ON b.authorId = u.id
+    WHERE b.tags LIKE ? AND b.published = 1
+    ORDER BY b.createdAt DESC
+  `);
+  
+  // Search for tag in JSON array
+  const rows = stmt.all(`%${tag}%`);
+  return rows.map(row => {
+    const post = blogPostFromDb(row);
+    // Filter out posts where tag isn't actually in the tags array
+    if (post.tags.includes(tag)) {
+      return post;
+    }
+    return null;
+  }).filter(Boolean) as BlogPost[];
+}
+
+export async function createBlogPost(data: {
+  title: string;
+  content: string;
+  excerpt: string;
+  coverImage: string;
+  category: string;
+  tags: string[];
+  authorId: string;
+  featured?: boolean;
+  published?: boolean;
+}): Promise<BlogPost> {
+  const id = uuidv4();
+  const slug = slugify(data.title) + '-' + id.slice(0, 8);
+  const now = new Date().toISOString();
+  
+  const stmt = db.prepare(`
+    INSERT INTO blog_posts (
+      id, title, slug, content, excerpt, coverImage, 
+      category, tags, authorId, featured, published, 
+      createdAt, updatedAt
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  
+  stmt.run(
+    id,
+    data.title,
+    slug,
+    data.content,
+    data.excerpt,
+    data.coverImage,
+    data.category,
+    JSON.stringify(data.tags),
+    data.authorId,
+    data.featured ? 1 : 0,
+    data.published !== undefined ? (data.published ? 1 : 0) : 1,
+    now,
+    now
+  );
+  
+  return getBlogPostById(id) as Promise<BlogPost>;
+}
+
+// Helper function to create URL-friendly slugs
+function slugify(text: string) {
+  return text
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, '-')        // Replace spaces with -
+    .replace(/[^\w\-]+/g, '')    // Remove all non-word chars
+    .replace(/\-\-+/g, '-')      // Replace multiple - with single -
+    .replace(/^-+/, '')          // Trim - from start of text
+    .replace(/-+$/, '');         // Trim - from end of text
+}
+
+export async function updateBlogPost(id: string, data: {
+  title?: string;
+  content?: string;
+  excerpt?: string;
+  coverImage?: string;
+  category?: string;
+  tags?: string[];
+  featured?: boolean;
+  published?: boolean;
+}): Promise<BlogPost | null> {
+  const post = await getBlogPostById(id);
+  if (!post) return null;
+  
+  const updateFields = [];
+  const params = [];
+  
+  if (data.title !== undefined) {
+    updateFields.push('title = ?');
+    params.push(data.title);
+    
+    // Update slug if title changes
+    updateFields.push('slug = ?');
+    params.push(slugify(data.title) + '-' + id.slice(0, 8));
+  }
+  
+  if (data.content !== undefined) {
+    updateFields.push('content = ?');
+    params.push(data.content);
+  }
+  
+  if (data.excerpt !== undefined) {
+    updateFields.push('excerpt = ?');
+    params.push(data.excerpt);
+  }
+  
+  if (data.coverImage !== undefined) {
+    updateFields.push('coverImage = ?');
+    params.push(data.coverImage);
+  }
+  
+  if (data.category !== undefined) {
+    updateFields.push('category = ?');
+    params.push(data.category);
+  }
+  
+  if (data.tags !== undefined) {
+    updateFields.push('tags = ?');
+    params.push(JSON.stringify(data.tags));
+  }
+  
+  if (data.featured !== undefined) {
+    updateFields.push('featured = ?');
+    params.push(data.featured ? 1 : 0);
+  }
+  
+  if (data.published !== undefined) {
+    updateFields.push('published = ?');
+    params.push(data.published ? 1 : 0);
+  }
+  
+  updateFields.push('updatedAt = ?');
+  params.push(new Date().toISOString());
+  
+  // Add post ID to params
+  params.push(id);
+  
+  if (updateFields.length > 0) {
+    const stmt = db.prepare(`
+      UPDATE blog_posts 
+      SET ${updateFields.join(', ')}
+      WHERE id = ?
+    `);
+    
+    stmt.run(...params);
+  }
+  
+  return getBlogPostById(id);
+}
+
+export async function deleteBlogPost(id: string): Promise<boolean> {
+  const stmt = db.prepare('DELETE FROM blog_posts WHERE id = ?');
+  const result = stmt.run(id);
+  return result.changes > 0;
+}
+
+// Blog comments
+export async function getBlogComments(postId: string) {
+  const stmt = db.prepare(`
+    SELECT c.*, u.name as userName, u.image as userImage, u.premium as userPremium
+    FROM blog_comments c
+    JOIN users u ON c.userId = u.id
+    WHERE c.postId = ?
+    ORDER BY c.createdAt DESC
+  `);
+  
+  return stmt.all(postId);
+}
+
+export async function createBlogComment(data: {
+  content: string;
+  postId: string;
+  userId: string;
+}): Promise<any> {
+  const id = uuidv4();
+  
+  const stmt = db.prepare(`
+    INSERT INTO blog_comments (id, content, postId, userId)
+    VALUES (?, ?, ?, ?)
+  `);
+  
+  stmt.run(id, data.content, data.postId, data.userId);
+  
+  // Get the created comment with user info
+  const commentStmt = db.prepare(`
+    SELECT c.*, u.name as userName, u.image as userImage, u.premium as userPremium
+    FROM blog_comments c
+    JOIN users u ON c.userId = u.id
+    WHERE c.id = ?
+  `);
+  
+  return commentStmt.get(id);
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  description: string | null;
+  logo: string | null;
+  website: string | null;
+  inn: string;
+  verified: boolean;
+  ownerId: string;
+  ownerName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Job {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  requirements: string;
+  responsibilities: string;
+  location: string;
+  type: 'full-time' | 'part-time' | 'remote' | 'freelance';
+  salary: string | null;
+  category: string;
+  experience: 'junior' | 'middle' | 'senior';
+  tags: string[];
+  companyId: string;
+  companyName?: string;
+  companyLogo?: string;
+  featured: boolean;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  expiresAt: string | null;
+}
+
+export interface JobApplication {
+  id: string;
+  jobId: string;
+  userId: string;
+  resumeUrl: string | null;
+  coverLetter: string | null;
+  status: 'pending' | 'reviewing' | 'accepted' | 'rejected';
+  createdAt: string;
+  updatedAt: string;
+}

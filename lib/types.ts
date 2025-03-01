@@ -50,3 +50,69 @@ export interface Award {
   image: string
   date: string
 }
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string;
+  coverImage: string;
+  author: string;
+  authorId: string;
+  authorImage?: string;
+  category: string;
+  tags: string[];
+  featured: boolean;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  description: string | null;
+  logo: string | null;
+  website: string | null;
+  inn: string;
+  verified: boolean;
+  ownerId: string;
+  ownerName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Job {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  requirements: string;
+  responsibilities: string;
+  location: string;
+  type: 'full-time' | 'part-time' | 'remote' | 'freelance';
+  salary: string | null;
+  category: string;
+  experience: 'junior' | 'middle' | 'senior';
+  tags: string[];
+  companyId: string;
+  companyName?: string;
+  companyLogo?: string;
+  featured: boolean;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  expiresAt: string | null;
+}
+
+export interface JobApplication {
+  id: string;
+  jobId: string;
+  userId: string;
+  resumeUrl: string | null;
+  coverLetter: string | null;
+  status: 'pending' | 'reviewing' | 'accepted' | 'rejected';
+  createdAt: string;
+  updatedAt: string;
+}

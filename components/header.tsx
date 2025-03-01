@@ -44,11 +44,11 @@ export default function Header() {
             <Link href="/" className="text-base font-medium hover:text-primary">
               Обзор
             </Link>
-            <Link href="/best-projects" className="text-base font-medium hover:text-primary">
-              Лучшие проекты
+            <Link href="/blog" className="text-base font-medium hover:text-primary">
+              Блог
             </Link>
-            <Link href="/all-projects" className="text-base font-medium hover:text-primary">
-              Все проекты
+            <Link href="/jobs" className="text-base font-medium hover:text-primary">
+              Вакансии
             </Link>
           </nav>
         </div>
@@ -155,11 +155,11 @@ export default function Header() {
             <Link href="/" className="text-base font-medium py-2">
               Обзор
             </Link>
-            <Link href="/best-projects" className="text-base font-medium py-2">
-              Лучшие проекты
+            <Link href="/blog" className="text-base font-medium py-2">
+              Блог
             </Link>
-            <Link href="/all-projects" className="text-base font-medium py-2">
-              Все проекты
+            <Link href="/jobs" className="text-base font-medium py-2">
+              Вакансии
             </Link>
           </nav>
 
