@@ -15,6 +15,8 @@ import {
 } from "lucide-react"
 import JobCard from "@/components/job-card"
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Вакансии | Canvas",
   description: "Найдите работу своей мечты в сфере дизайна на платформе Canvas",

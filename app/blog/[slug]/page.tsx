@@ -11,6 +11,8 @@ import BlogComments from "@/components/blog-comments"
 import ShareButton from "@/components/share-button"
 import TagBadge from "@/components/tag-badge"
 
+export const dynamic = 'force-dynamic';
+
 interface BlogPostPageProps {
   params: {
     slug: string

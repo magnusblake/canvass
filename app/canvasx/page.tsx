@@ -11,6 +11,8 @@ import { getUserById } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import PricingCard from "@/components/pricing-card";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "CanvasX - Премиум подписка | Canvas",
   description: "Откройте полную мощь Canvas с премиум-подпиской CanvasX",

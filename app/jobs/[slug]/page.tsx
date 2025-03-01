@@ -1,9 +1,12 @@
-import { Metadata } from "next"
-import Image from "next/image"
-import Link from "next/link"
-import { notFound } from "next/navigation"
-import { format } from "date-fns"
-import { ru } from "date-fns/locale"
+// Указываем Next.js рендерить эту страницу динамически при каждом запросе
+export const dynamic = 'force-dynamic';
+
+import { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
 import { 
   Building2, 
   MapPin, 
@@ -14,20 +17,19 @@ import {
   Globe,
   CheckCircle2,
   Clock
-} from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { 
   getJobBySlug, 
   getJobsByCategory, 
-  getCompanyById, 
-  getAllJobs 
-} from "@/lib/data"
-import Header from "@/components/header"
-import JobApplicationForm from "@/components/job-application-form"
-import JobCard from "@/components/job-card"
-import ShareButton from "@/components/share-button"
+  getCompanyById,
+} from "@/lib/data";
+import Header from "@/components/header";
+import JobApplicationForm from "@/components/job-application-form";
+import JobCard from "@/components/job-card";
+import ShareButton from "@/components/share-button";
 
 interface JobDetailPageProps {
   params: {
@@ -35,45 +37,39 @@ interface JobDetailPageProps {
   }
 }
 
-export async function generateStaticParams() {
+export async function generateMetadata({ params }: JobDetailPageProps): Promise<Metadata> {
   try {
-    const jobs = await getAllJobs();
-    return jobs
-      .filter(job => job.slug) // Make sure slug is defined
-      .map(job => ({
-        slug: job.slug
-      }));
-  } catch (error) {
-    console.error('Error generating static params for jobs:', error);
-    return []; // Return empty array to avoid generating pages on error
-  }
-}
-
-export async function generateMetadata({
-  params,
-}: JobDetailPageProps): Promise<Metadata> {
-  try {
+    if (!params?.slug) {
+      return {
+        title: "Вакансия не найдена",
+      };
+    }
+    
     const job = await getJobBySlug(params.slug);
 
     if (!job) {
       return {
         title: "Вакансия не найдена",
-      }
+      };
     }
 
     return {
-      title: `${job.title} | ${job.companyName} | Canvas Jobs`,
-      description: job.description,
-    }
+      title: `${job.title} | ${job.companyName || "Вакансия"} | Canvas Jobs`,
+      description: job.description || "Подробная информация о вакансии",
+    };
   } catch (error) {
-    console.error('Error generating metadata for job:', params.slug, error);
+    console.error('Error generating metadata for job:', error);
     return {
-      title: "Ошибка загрузки вакансии",
-    }
+      title: "Ошибка при загрузке вакансии",
+    };
   }
 }
 
 export default async function JobDetailPage({ params }: JobDetailPageProps) {
+  if (!params?.slug) {
+    notFound();
+  }
+  
   try {
     const job = await getJobBySlug(params.slug);
 
@@ -81,26 +77,40 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
       notFound();
     }
 
-    const company = await getCompanyById(job.companyId);
-    const similarJobs = await getJobsByCategory(job.category);
+    // Получаем информацию о компании
+    let company = null;
+    try {
+      company = await getCompanyById(job.companyId);
+    } catch (error) {
+      console.error("Failed to fetch company:", error);
+      // Продолжаем работу даже если информацию о компании получить не удалось
+    }
     
-    // Remove current job from similar jobs and limit to 3
-    const filteredSimilarJobs = similarJobs
-      .filter(similarJob => similarJob.id !== job.id)
-      .slice(0, 3);
+    // Получаем похожие вакансии, но не останавливаемся если произошла ошибка
+    let similarJobs = [];
+    try {
+      const allSimilarJobs = await getJobsByCategory(job.category);
+      // Исключаем текущую вакансию из похожих и ограничиваем количество до 3
+      similarJobs = allSimilarJobs
+        .filter(similarJob => similarJob.id !== job.id)
+        .slice(0, 3);
+    } catch (error) {
+      console.error("Failed to fetch similar jobs:", error);
+    }
 
+    // Словари для преобразования типа работы и опыта
     const jobTypeLabels = {
       'full-time': 'Полная занятость',
       'part-time': 'Частичная занятость',
       'remote': 'Удалённая работа',
       'freelance': 'Фриланс'
-    }
+    };
     
     const experienceLabels = {
       'junior': 'Junior',
       'middle': 'Middle',
       'senior': 'Senior'
-    }
+    };
 
     return (
       <main className="min-h-screen bg-background">
@@ -115,7 +125,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
           </Link>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
+            {/* Основное содержимое */}
             <div className="lg:col-span-2">
               <div className="bg-card rounded-lg border p-6 shadow-sm">
                 <div className="flex items-start gap-4 mb-6">
@@ -123,7 +133,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                     {job.companyLogo ? (
                       <Image
                         src={job.companyLogo}
-                        alt={company?.name || "Компания"}
+                        alt={company?.name || job.companyName || "Компания"}
                         fill
                         className="object-cover"
                       />
@@ -154,12 +164,12 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                     <div className="flex flex-wrap gap-2">
                       <Badge variant="outline" className="flex items-center gap-1">
                         <Briefcase className="h-4 w-4" />
-                        {jobTypeLabels[job.type]}
+                        {jobTypeLabels[job.type] || job.type}
                       </Badge>
                       
                       <Badge variant="outline" className="flex items-center gap-1">
                         <Award className="h-4 w-4" />
-                        {experienceLabels[job.experience]}
+                        {experienceLabels[job.experience] || job.experience}
                       </Badge>
                       
                       {job.salary && (
@@ -199,13 +209,15 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                     </div>
                   </div>
                   
-                  <div className="flex flex-wrap gap-2">
-                    {job.tags.map((tag) => (
-                      <Badge key={tag} variant="outline">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
+                  {job.tags && Array.isArray(job.tags) && job.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {job.tags.map((tag) => (
+                        <Badge key={tag} variant="outline">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 
                 <Separator className="my-6" />
@@ -217,10 +229,10 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
               </div>
             </div>
             
-            {/* Sidebar */}
+            {/* Боковая панель */}
             <div className="lg:col-span-1">
               <div className="space-y-6">
-                {/* Company Info */}
+                {/* Информация о компании */}
                 <div className="bg-card rounded-lg border p-6 shadow-sm">
                   <h2 className="text-lg font-semibold mb-4">О компании</h2>
                   
@@ -229,7 +241,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                       {job.companyLogo ? (
                         <Image
                           src={job.companyLogo}
-                          alt={company?.name || "Компания"}
+                          alt={company?.name || job.companyName || "Компания"}
                           fill
                           className="object-cover"
                         />
@@ -239,7 +251,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                     </div>
                     
                     <div>
-                      <h3 className="font-medium">{company?.name || job.companyName}</h3>
+                      <h3 className="font-medium">{company?.name || job.companyName || "Компания"}</h3>
                       {company?.verified && (
                         <div className="flex items-center text-xs text-primary">
                           <CheckCircle2 className="h-3 w-3 mr-1" />
@@ -290,11 +302,11 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                   </div>
                 </div>
                 
-                {/* Share Job */}
+                {/* Поделиться вакансией */}
                 <div className="bg-card rounded-lg border p-6 shadow-sm">
                   <h3 className="text-lg font-semibold mb-4">Поделиться вакансией</h3>
                   <ShareButton 
-                    title={`${job.title} в ${company?.name || job.companyName}`}
+                    title={`${job.title} в ${company?.name || job.companyName || "Компания"}`}
                     text={`Вакансия: ${job.title}`}
                     url={`/jobs/${job.slug}`}
                     variant="outline"
@@ -302,7 +314,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                   />
                 </div>
                 
-                {/* Job Details */}
+                {/* Детали вакансии */}
                 <div className="bg-card rounded-lg border p-6 shadow-sm">
                   <h3 className="text-lg font-semibold mb-4">Детали вакансии</h3>
                   
@@ -311,7 +323,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                       <Briefcase className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                       <div>
                         <h4 className="font-medium">Тип занятости</h4>
-                        <p className="text-sm text-muted-foreground">{jobTypeLabels[job.type]}</p>
+                        <p className="text-sm text-muted-foreground">{jobTypeLabels[job.type] || job.type}</p>
                       </div>
                     </div>
                     
@@ -319,7 +331,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
                       <Award className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                       <div>
                         <h4 className="font-medium">Уровень</h4>
-                        <p className="text-sm text-muted-foreground">{experienceLabels[job.experience]}</p>
+                        <p className="text-sm text-muted-foreground">{experienceLabels[job.experience] || job.experience}</p>
                       </div>
                     </div>
                     
@@ -350,12 +362,12 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
             </div>
           </div>
           
-          {/* Similar Jobs */}
-          {filteredSimilarJobs.length > 0 && (
+          {/* Похожие вакансии */}
+          {similarJobs && similarJobs.length > 0 && (
             <section className="mt-12">
               <h2 className="text-2xl font-semibold mb-6">Похожие вакансии</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {filteredSimilarJobs.map((similarJob) => (
+                {similarJobs.map((similarJob) => (
                   <JobCard key={similarJob.id} job={similarJob} />
                 ))}
               </div>
@@ -363,9 +375,9 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
           )}
         </div>
       </main>
-    )
+    );
   } catch (error) {
-    console.error('Error rendering job detail page:', error);
+    console.error("Error rendering job detail page:", error);
     notFound();
   }
 }

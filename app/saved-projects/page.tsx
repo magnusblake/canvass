@@ -6,6 +6,8 @@ import ProjectGrid from "@/components/project-grid";
 import Link from "next/link";
 import { Bookmark, ChevronLeft } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Сохраненные проекты | Canvas",
   description: "Просмотр сохраненных дизайнерских проектов на платформе Canvas",

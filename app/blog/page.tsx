@@ -8,6 +8,8 @@ import { Calendar, ArrowRight } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { ru } from "date-fns/locale"
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Блог | Canvas",
   description: "Новости и статьи от команды Canvas для дизайнеров",
