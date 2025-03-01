@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FcGoogle } from "react-icons/fc"
-import { signIn } from "next-auth/react"
 import { toast } from "sonner"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { register } = useAuth()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -30,29 +31,24 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      })
+      const success = await register(name, email, password)
 
-      if (response.ok) {
+      if (success) {
         toast.success("Регистрация успешна")
-        await signIn("credentials", {
-          email,
-          password,
-          redirect: false,
-        })
         router.push("/")
       } else {
-        const data = await response.json()
-        toast.error(data.error || "Ошибка регистрации")
+        toast.error("Ошибка регистрации")
       }
     } catch (error) {
       toast.error("Произошла ошибка")
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleGoogleSignup = () => {
+    // В будущем можно добавить возможность регистрации через Google
+    toast.info("Регистрация через Google в разработке")
   }
 
   return (
@@ -156,7 +152,7 @@ export default function RegisterPage() {
                   type="button"
                   variant="outline"
                   className="w-full flex justify-center"
-                  onClick={() => signIn("google", { callbackUrl: "/" })}
+                  onClick={handleGoogleSignup}
                 >
                   <FcGoogle className="mr-2 h-5 w-5" />
                   Google

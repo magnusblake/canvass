@@ -10,11 +10,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Header from "@/components/header"
 import { toast } from "sonner"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function CreateProjectPage() {
   const router = useRouter()
-  const { data: session, status } = useSession()
+  const { user, isLoading } = useAuth()
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [category, setCategory] = useState<"2d" | "3d">("2d")
@@ -23,8 +23,8 @@ export default function CreateProjectPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
 
-  // Redirect if not authenticated
-  if (status === "unauthenticated") {
+  // Редирект если не аутентифицирован
+  if (!isLoading && !user) {
     router.push("/login")
     return null
   }

@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Heart } from "lucide-react"
 import { toast } from "sonner"
+import { useAuth } from "@/contexts/AuthContext"
 
 interface LikeButtonProps {
   projectId: string
@@ -13,13 +13,13 @@ interface LikeButtonProps {
 }
 
 export default function LikeButton({ projectId, initialLikes }: LikeButtonProps) {
-  const { data: session } = useSession()
+  const { user } = useAuth()
   const router = useRouter()
   const [likes, setLikes] = useState(initialLikes)
   const [isLiking, setIsLiking] = useState(false)
 
   const handleLike = async () => {
-    if (!session) {
+    if (!user) {
       // Redirect to login if not authenticated
       router.push("/login")
       return

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
@@ -10,9 +9,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FcGoogle } from "react-icons/fc"
 import { toast } from "sonner"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function LoginPage() {
   const router = useRouter()
+  const { login } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -22,24 +23,25 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      })
+      const success = await login(email, password)
 
-      if (result?.error) {
-        toast.error("Неверное имя пользователя или пароль")
-      } else {
+      if (success) {
         toast.success("Вход выполнен успешно")
         router.push("/")
         router.refresh()
+      } else {
+        toast.error("Неверное имя пользователя или пароль")
       }
     } catch (error) {
       toast.error("Произошла ошибка")
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleGoogleLogin = () => {
+    // В будущем можно добавить возможность входа через Google
+    toast.info("Вход через Google в разработке")
   }
 
   return (
@@ -113,7 +115,7 @@ export default function LoginPage() {
                   type="button"
                   variant="outline"
                   className="w-full flex justify-center"
-                  onClick={() => signIn("google", { callbackUrl: "/" })}
+                  onClick={handleGoogleLogin}
                 >
                   <FcGoogle className="mr-2 h-5 w-5" />
                   Google

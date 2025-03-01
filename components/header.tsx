@@ -17,11 +17,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { cn } from "@/lib/utils"
-import { useSession, signOut } from "next-auth/react"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function Header() {
   const router = useRouter()
-  const { data: session } = useSession()
+  const { user, logout } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -68,7 +68,7 @@ export default function Header() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           </form>
 
-          {session ? (
+          {user ? (
             <>
               <Button
                 variant="default"
@@ -83,17 +83,17 @@ export default function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
                     <Image
-                      src={session.user?.image || `https://api.dicebear.com/6.x/initials/svg?seed=${session.user?.name}`}
-                      alt={session.user?.name || "User"}
+                      src={user.image || `https://api.dicebear.com/6.x/initials/svg?seed=${user.name}`}
+                      alt={user.name || "User"}
                       fill
                       className="rounded-full object-cover"
                     />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>{session.user?.name}</DropdownMenuLabel>
+                  <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push(`/profile/${session.user?.id}`)}>
+                  <DropdownMenuItem onClick={() => router.push(`/profile/${user.id}`)}>
                     <User className="mr-2 h-4 w-4" />
                     Профиль
                   </DropdownMenuItem>
@@ -102,7 +102,7 @@ export default function Header() {
                     Создать проект
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })}>
+                  <DropdownMenuItem onClick={() => logout()}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Выйти
                   </DropdownMenuItem>
@@ -175,7 +175,7 @@ export default function Header() {
           </div>
 
           <div className="flex flex-col gap-2">
-            {session ? (
+            {user ? (
               <>
                 <Button
                   variant="default"
@@ -193,7 +193,7 @@ export default function Header() {
                   variant="outline"
                   className="w-full"
                   onClick={() => {
-                    router.push(`/profile/${session.user?.id}`)
+                    router.push(`/profile/${user.id}`)
                     setIsMenuOpen(false)
                   }}
                 >
@@ -204,7 +204,7 @@ export default function Header() {
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => signOut({ callbackUrl: "/" })}
+                  onClick={() => logout()}
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   Выйти
