@@ -1,20 +1,20 @@
-import { formatDistanceToNow } from "date-fns";
-import { ru } from "date-fns/locale";
-import Image from "next/image";
-import Link from "next/link";
-import ProfileBadge from "./premium-badge";
+import { formatDistanceToNow } from "date-fns"
+import { ru } from "date-fns/locale"
+import Image from "next/image"
+import Link from "next/link"
+import ProfileBadge from "./premium-badge"
 
 interface CommentProps {
   comment: {
-    id: string;
-    content: string;
-    userId: string;
-    projectId: string;
-    createdAt: string;
-    userName: string;
-    userImage: string | null;
-    userPremium: boolean;
-  };
+    id: string
+    content: string
+    userId: string
+    projectId: string
+    createdAt: string
+    userName: string
+    userImage: string | null
+    userPremium: boolean
+  }
 }
 
 export default function CommentItem({ comment }: CommentProps) {
@@ -31,7 +31,7 @@ export default function CommentItem({ comment }: CommentProps) {
           />
         </div>
       </Link>
-      
+
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
           <Link href={`/profile/${comment.userId}`} className="font-medium hover:text-primary">
@@ -42,11 +42,10 @@ export default function CommentItem({ comment }: CommentProps) {
             {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: ru })}
           </span>
         </div>
-        
-        <div className="text-sm">
-          {comment.content}
-        </div>
+
+        <div className="text-sm">{comment.content}</div>
       </div>
     </div>
-  );
+  )
 }
+

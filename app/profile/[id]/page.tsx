@@ -1,14 +1,11 @@
 // app/profile/[id]/page.tsx
 import { notFound } from "next/navigation"
 import Image from "next/image"
-import Link from "next/link"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Header from "@/components/header"
 import { getUserById, isFollowing } from "@/lib/data"
 import db from "@/lib/db"
-import { Heart, Eye, Calendar, MapPin, Mail, User as UserIcon, Award, Users } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
-import { ru } from "date-fns/locale"
+import { Calendar, MapPin, Mail } from "lucide-react"
 import ProfileBadge from "@/components/premium-badge"
 import UserGallery from "@/components/user-gallery"
 import SocialLinks from "@/components/social-links"
@@ -28,14 +25,14 @@ interface ProfilePageProps {
 
 // Добавляем функцию для статического экспорта
 export async function generateStaticParams() {
-  const users = db.prepare('SELECT id FROM users').all();
-  return users.map(user => ({
-    id: user.id
-  }));
+  const users = db.prepare("SELECT id FROM users").all()
+  return users.map((user) => ({
+    id: user.id,
+  }))
 }
 
 export async function generateMetadata({ params }: ProfilePageProps) {
-  const user = await getUserById(params.id);
+  const user = await getUserById(params.id)
 
   if (!user) {
     return {
@@ -50,39 +47,31 @@ export async function generateMetadata({ params }: ProfilePageProps) {
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
-  const user = await getUserById(params.id);
-  const session = await getSession();
-  const isCurrentUser = session?.user?.id === params.id;
-  const isUserFollowing = session?.user ? await isFollowing(session.user.id, params.id) : false;
+  const user = await getUserById(params.id)
+  const session = await getSession()
+  const isCurrentUser = session?.user?.id === params.id
+  const isUserFollowing = session?.user ? await isFollowing(session.user.id, params.id) : false
 
   if (!user) {
     notFound()
   }
 
-  const totalProjects = user.projects?.length || 0;
-  const totalLikes = user.projects?.reduce((acc, project) => acc + project.likes, 0) || 0;
-  const totalFollowers = user.followers?.length || 0;
-  const totalFollowing = user.following?.length || 0;
+  const totalProjects = user.projects?.length || 0
+  const totalLikes = user.projects?.reduce((acc, project) => acc + project.likes, 0) || 0
+  const totalFollowers = user.followers?.length || 0
+  const totalFollowing = user.following?.length || 0
 
   return (
     <main className="min-h-screen bg-background">
       <Header />
-      
+
       {/* Banner */}
       <div className="mb-24 relative">
         <div className="w-full h-48 md:h-64 lg:h-80 bg-gradient-to-r from-primary/10 to-primary/5">
-          {user.banner && (
-            <Image
-              src={user.banner}
-              alt={user.name}
-              fill
-              className="object-cover"
-              priority
-            />
-          )}
+          {user.banner && <Image src={user.banner} alt={user.name} fill className="object-cover" priority />}
         </div>
       </div>
-      
+
       <div className="container mx-auto px-4" style={{ marginTop: "-6rem" }}>
         <div className="flex flex-col md:flex-row gap-8">
           <div className="md:w-1/3">
@@ -96,27 +85,21 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                     className="rounded-full object-cover bg-secondary"
                   />
                 </div>
-                
+
                 <div className="flex items-center gap-2 mb-1">
                   <h1 className="text-2xl font-bold">{user.name}</h1>
                   {user.premium && <ProfileBadge type="premium" />}
                   {!user.premium && <ProfileBadge type="standard" />}
                 </div>
-                
+
                 <p className="text-muted-foreground mb-4">Дизайнер</p>
-                
+
                 {!isCurrentUser && (
-                  <FollowButton 
-                    userId={params.id} 
-                    initialIsFollowing={isUserFollowing}
-                    className="mb-4 w-full"
-                  />
+                  <FollowButton userId={params.id} initialIsFollowing={isUserFollowing} className="mb-4 w-full" />
                 )}
-                
-                {isCurrentUser && (
-                  <EditProfileButton className="mb-4 w-full" />
-                )}
-                
+
+                {isCurrentUser && <EditProfileButton className="mb-4 w-full" />}
+
                 <div className="w-full grid grid-cols-2 gap-4 mb-6">
                   <div className="flex flex-col items-center p-3 bg-muted rounded-lg">
                     <span className="text-xl font-bold">{totalFollowers}</span>
@@ -127,7 +110,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                     <span className="text-sm text-muted-foreground">Подписок</span>
                   </div>
                 </div>
-                
+
                 <div className="w-full grid grid-cols-2 gap-4 mb-6">
                   <div className="flex flex-col items-center p-3 bg-muted rounded-lg">
                     <span className="text-xl font-bold">{totalProjects}</span>
@@ -138,20 +121,20 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                     <span className="text-sm text-muted-foreground">Лайков</span>
                   </div>
                 </div>
-                
+
                 <div className="w-full space-y-3 mb-6 text-left">
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
                     На платформе с {new Date(user.createdAt).toLocaleDateString()}
                   </div>
-                  
+
                   {user.email && (
                     <div className="flex items-center text-sm text-muted-foreground">
                       <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
                       {user.email}
                     </div>
                   )}
-                  
+
                   {user.country && (
                     <div className="flex items-center text-sm text-muted-foreground">
                       <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
@@ -159,21 +142,17 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                     </div>
                   )}
                 </div>
-                
+
                 {(user.vkLink || user.behanceLink || user.telegramLink) && (
-                  <SocialLinks
-                    vk={user.vkLink}
-                    behance={user.behanceLink}
-                    telegram={user.telegramLink}
-                  />
+                  <SocialLinks vk={user.vkLink} behance={user.behanceLink} telegram={user.telegramLink} />
                 )}
-                
+
                 {isCurrentUser && (
                   <div className="mt-6">
                     <PremiumToggle />
                   </div>
                 )}
-                
+
                 {/* Рекомендации пользователей */}
                 {session?.user && !isCurrentUser && (
                   <div className="mt-6">
@@ -187,16 +166,28 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           <div className="md:w-2/3">
             <Tabs defaultValue="projects" className="bg-card rounded-lg border shadow-sm p-6">
               <TabsList className="mb-6 grid grid-cols-4 gap-4">
-                <TabsTrigger value="projects" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <TabsTrigger
+                  value="projects"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
                   Проекты
                 </TabsTrigger>
-                <TabsTrigger value="about" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <TabsTrigger
+                  value="about"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
                   О себе
                 </TabsTrigger>
-                <TabsTrigger value="awards" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <TabsTrigger
+                  value="awards"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
                   Награды
                 </TabsTrigger>
-                <TabsTrigger value="network" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <TabsTrigger
+                  value="network"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
                   Сеть
                 </TabsTrigger>
               </TabsList>
@@ -206,9 +197,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 {user.projects && user.projects.length > 0 ? (
                   <UserGallery projects={user.projects} />
                 ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    У пользователя пока нет проектов
-                  </div>
+                  <div className="text-center py-12 text-muted-foreground">У пользователя пока нет проектов</div>
                 )}
               </TabsContent>
 
@@ -223,7 +212,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                     Пользователь еще не добавил информацию о себе
                   </div>
                 )}
-                
+
                 {user.interests && user.interests.length > 0 && (
                   <>
                     <h3 className="text-lg font-semibold mt-8 mb-4">Интересы</h3>
@@ -243,9 +232,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 {user.awards && user.awards.length > 0 ? (
                   <UserAwards awards={user.awards} />
                 ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    У пользователя пока нет наград
-                  </div>
+                  <div className="text-center py-12 text-muted-foreground">У пользователя пока нет наград</div>
                 )}
               </TabsContent>
 
@@ -253,24 +240,18 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 <h2 className="text-xl font-semibold mb-4">Подписчики и подписки</h2>
                 <Tabs defaultValue="followers">
                   <TabsList className="mb-4">
-                    <TabsTrigger value="followers">
-                      Подписчики ({totalFollowers})
-                    </TabsTrigger>
-                    <TabsTrigger value="following">
-                      Подписки ({totalFollowing})
-                    </TabsTrigger>
+                    <TabsTrigger value="followers">Подписчики ({totalFollowers})</TabsTrigger>
+                    <TabsTrigger value="following">Подписки ({totalFollowing})</TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="followers">
                     {user.followers && user.followers.length > 0 ? (
                       <UserFollowers users={user.followers} />
                     ) : (
-                      <div className="text-center py-12 text-muted-foreground">
-                        У пользователя пока нет подписчиков
-                      </div>
+                      <div className="text-center py-12 text-muted-foreground">У пользователя пока нет подписчиков</div>
                     )}
                   </TabsContent>
-                  
+
                   <TabsContent value="following">
                     {user.following && user.following.length > 0 ? (
                       <UserFollowers users={user.following} />
@@ -289,3 +270,4 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     </main>
   )
 }
+

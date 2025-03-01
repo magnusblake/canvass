@@ -51,18 +51,15 @@ export default function SearchPage({ searchParams }: SearchPageProps) {
 
 async function SearchResults({ query }: { query: string }) {
   if (!query) {
-    return (
-      <div className="text-center text-muted-foreground py-8">
-        Введите запрос для поиска проектов
-      </div>
-    )
+    return <div className="text-center text-muted-foreground py-8">Введите запрос для поиска проектов</div>
   }
 
   // Используем SQL LIKE для поиска
   const likeTerm = `%${query}%`
-  
+
   // Выполняем поиск по базе данных с помощью SQLite
-  const projects = db.prepare(`
+  const projects = db
+    .prepare(`
     SELECT p.*, u.name as authorName, COUNT(l.id) as likes
     FROM projects p
     LEFT JOIN users u ON p.authorId = u.id
@@ -71,14 +68,11 @@ async function SearchResults({ query }: { query: string }) {
     GROUP BY p.id
     ORDER BY p.createdAt DESC
     LIMIT 20
-  `).all(likeTerm, likeTerm, likeTerm);
+  `)
+    .all(likeTerm, likeTerm, likeTerm)
 
   if (projects.length === 0) {
-    return (
-      <div className="text-center text-muted-foreground py-8">
-        По запросу "{query}" ничего не найдено
-      </div>
-    )
+    return <div className="text-center text-muted-foreground py-8">По запросу "{query}" ничего не найдено</div>
   }
 
   return (
@@ -110,3 +104,4 @@ async function SearchResults({ query }: { query: string }) {
     </div>
   )
 }
+

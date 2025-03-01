@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
@@ -45,7 +47,7 @@ export default function CreateProjectPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!imageFile) {
       toast.error("Выберите изображение")
       return
@@ -77,8 +79,8 @@ export default function CreateProjectPage() {
           title,
           description,
           category,
-          tags: tags.split(",").map(tag => tag.trim()),
-          image: imageUrl
+          tags: tags.split(",").map((tag) => tag.trim()),
+          image: imageUrl,
         }),
       })
 
@@ -87,7 +89,7 @@ export default function CreateProjectPage() {
       }
 
       const project = await projectResponse.json()
-      
+
       toast.success("Проект успешно создан")
       router.push(`/project/${project.id}`)
     } catch (error) {
@@ -104,7 +106,7 @@ export default function CreateProjectPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">Создать проект</h1>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="title">Название проекта</Label>
@@ -116,7 +118,7 @@ export default function CreateProjectPage() {
                 placeholder="Название вашего проекта"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="description">Описание</Label>
               <Textarea
@@ -128,13 +130,10 @@ export default function CreateProjectPage() {
                 rows={5}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="category">Категория</Label>
-              <Select 
-                value={category} 
-                onValueChange={(value) => setCategory(value as "2d" | "3d")}
-              >
+              <Select value={category} onValueChange={(value) => setCategory(value as "2d" | "3d")}>
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите категорию" />
                 </SelectTrigger>
@@ -144,7 +143,7 @@ export default function CreateProjectPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="tags">Теги (через запятую)</Label>
               <Input
@@ -154,7 +153,7 @@ export default function CreateProjectPage() {
                 placeholder="дизайн, интерфейс, веб..."
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="image">Изображение проекта</Label>
               <div className="flex items-center gap-4">
@@ -166,25 +165,16 @@ export default function CreateProjectPage() {
                   required
                   className="flex-1"
                 />
-                
+
                 {imagePreview && (
                   <div className="relative w-24 h-24 rounded-lg overflow-hidden border">
-                    <Image 
-                      src={imagePreview} 
-                      alt="Preview" 
-                      fill 
-                      className="object-cover" 
-                    />
+                    <Image src={imagePreview} alt="Preview" fill className="object-cover" />
                   </div>
                 )}
               </div>
             </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full bg-primary" 
-              disabled={isUploading}
-            >
+
+            <Button type="submit" className="w-full bg-primary" disabled={isUploading}>
               {isUploading ? "Загрузка..." : "Создать проект"}
             </Button>
           </form>
@@ -193,3 +183,4 @@ export default function CreateProjectPage() {
     </main>
   )
 }
+

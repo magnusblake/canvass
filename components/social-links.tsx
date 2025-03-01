@@ -17,7 +17,7 @@ export default function SocialLinks({ vk, behance, telegram }: SocialLinksProps)
           </a>
         </Button>
       )}
-      
+
       {behance && (
         <Button size="icon" variant="outline" asChild className="rounded-full" aria-label="Behance">
           <a href={behance} target="_blank" rel="noopener noreferrer">
@@ -25,7 +25,7 @@ export default function SocialLinks({ vk, behance, telegram }: SocialLinksProps)
           </a>
         </Button>
       )}
-      
+
       {telegram && (
         <Button size="icon" variant="outline" asChild className="rounded-full" aria-label="Telegram">
           <a href={telegram} target="_blank" rel="noopener noreferrer">
@@ -36,3 +36,4 @@ export default function SocialLinks({ vk, behance, telegram }: SocialLinksProps)
     </div>
   )
 }
+

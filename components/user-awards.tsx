@@ -1,5 +1,5 @@
 import Image from "next/image"
-import { Award } from "@/lib/types"
+import type { Award } from "@/lib/types"
 import { formatDistanceToNow } from "date-fns"
 import { ru } from "date-fns/locale"
 
@@ -13,12 +13,7 @@ export default function UserAwards({ awards }: UserAwardsProps) {
       {awards.map((award) => (
         <div key={award.id} className="flex items-start gap-4 p-4 border rounded-lg bg-card">
           <div className="relative w-12 h-12 flex-shrink-0">
-            <Image
-              src={award.image}
-              alt={award.title}
-              fill
-              className="object-cover rounded-lg"
-            />
+            <Image src={award.image} alt={award.title} fill className="object-cover rounded-lg" />
           </div>
           <div className="flex-1">
             <h3 className="font-semibold">{award.title}</h3>
@@ -32,3 +27,4 @@ export default function UserAwards({ awards }: UserAwardsProps) {
     </div>
   )
 }
+

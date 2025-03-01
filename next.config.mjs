@@ -2,6 +2,7 @@ let userConfig = undefined
 try {
   userConfig = await import('./v0-user-next.config')
 } catch (e) {
+  // ignore error
 }
 
 /** @type {import('next').NextConfig} */
@@ -13,13 +14,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ['images.unsplash.com', 'api.dicebear.com', 'source.unsplash.com'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-    ],
+    unoptimized: true,
   },
   experimental: {
     webpackBuildWorker: true,

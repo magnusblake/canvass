@@ -18,10 +18,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     const result = await toggleLike(session.user.id, params.id)
-    
+
     return NextResponse.json(result)
   } catch (error) {
     console.error("Error toggling like:", error)
     return NextResponse.json({ error: "Failed to like project" }, { status: 500 })
   }
 }
+

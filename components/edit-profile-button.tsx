@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { Button } from "./ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
@@ -21,7 +23,7 @@ export default function EditProfileButton({ className }: EditProfileButtonProps)
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  
+
   const [formData, setFormData] = useState({
     name: user?.name || "",
     bio: user?.bio || "",
@@ -29,36 +31,36 @@ export default function EditProfileButton({ className }: EditProfileButtonProps)
     interests: (user?.interests || []).join(", "),
     vkLink: user?.vkLink || "",
     behanceLink: user?.behanceLink || "",
-    telegramLink: user?.telegramLink || ""
+    telegramLink: user?.telegramLink || "",
   })
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    
+
     // Преобразуем строку с интересами в массив
     const interests = formData.interests
       .split(",")
-      .map(item => item.trim())
-      .filter(item => item.length > 0)
-    
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0)
+
     try {
       const response = await fetch("/api/profile", {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
-          interests
-        })
+          interests,
+        }),
       })
-      
+
       if (response.ok) {
         toast.success("Профиль успешно обновлен")
         setIsOpen(false)
@@ -72,7 +74,7 @@ export default function EditProfileButton({ className }: EditProfileButtonProps)
       setIsLoading(false)
     }
   }
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -85,40 +87,23 @@ export default function EditProfileButton({ className }: EditProfileButtonProps)
         <DialogHeader>
           <DialogTitle>Редактировать профиль</DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="space-y-2">
             <Label htmlFor="name">Имя</Label>
-            <Input
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
+            <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="bio">О себе</Label>
-            <Textarea
-              id="bio"
-              name="bio"
-              value={formData.bio}
-              onChange={handleChange}
-              rows={3}
-            />
+            <Textarea id="bio" name="bio" value={formData.bio} onChange={handleChange} rows={3} />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="country">Страна</Label>
-            <Input
-              id="country"
-              name="country"
-              value={formData.country}
-              onChange={handleChange}
-            />
+            <Input id="country" name="country" value={formData.country} onChange={handleChange} />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="interests">Интересы (через запятую)</Label>
             <Input
@@ -129,7 +114,7 @@ export default function EditProfileButton({ className }: EditProfileButtonProps)
               placeholder="дизайн, типографика, 3D..."
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="vkLink">VK</Label>
             <Input
@@ -140,7 +125,7 @@ export default function EditProfileButton({ className }: EditProfileButtonProps)
               placeholder="https://vk.com/username"
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="behanceLink">Behance</Label>
             <Input
@@ -151,7 +136,7 @@ export default function EditProfileButton({ className }: EditProfileButtonProps)
               placeholder="https://behance.net/username"
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="telegramLink">Telegram</Label>
             <Input
@@ -162,7 +147,7 @@ export default function EditProfileButton({ className }: EditProfileButtonProps)
               placeholder="https://t.me/username"
             />
           </div>
-          
+
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
               Отмена
@@ -176,3 +161,4 @@ export default function EditProfileButton({ className }: EditProfileButtonProps)
     </Dialog>
   )
 }
+

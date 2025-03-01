@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Heart, Eye } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { ru } from "date-fns/locale"
-import { Project } from "@/lib/types"
+import type { Project } from "@/lib/types"
 
 interface UserGalleryProps {
   projects: Project[]
@@ -48,3 +48,4 @@ export default function UserGallery({ projects }: UserGalleryProps) {
     </div>
   )
 }
+

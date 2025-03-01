@@ -22,27 +22,27 @@ export default function PremiumToggle() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  
+
   const handleTogglePremium = async () => {
     setIsLoading(true)
-    
+
     try {
       const response = await fetch(`/api/premium`, {
         method: "POST",
       })
-      
+
       if (response.ok) {
         const data = await response.json()
         updateUser({ premium: data.premium })
-        
+
         if (data.premium) {
           toast.success("Премиум статус активирован!", {
-            icon: <Crown className="h-4 w-4 text-yellow-500" />
+            icon: <Crown className="h-4 w-4 text-yellow-500" />,
           })
         } else {
           toast.success("Премиум статус деактивирован")
         }
-        
+
         router.refresh()
         setIsDialogOpen(false)
       } else {
@@ -54,16 +54,12 @@ export default function PremiumToggle() {
       setIsLoading(false)
     }
   }
-  
+
   if (!user) return null
-  
+
   return (
     <>
-      <Button 
-        variant={user.premium ? "outline" : "default"}
-        onClick={() => setIsDialogOpen(true)}
-        className="gap-2"
-      >
+      <Button variant={user.premium ? "outline" : "default"} onClick={() => setIsDialogOpen(true)} className="gap-2">
         {user.premium ? (
           <>
             <Crown className="h-4 w-4 text-yellow-500" />
@@ -76,7 +72,7 @@ export default function PremiumToggle() {
           </>
         )}
       </Button>
-      
+
       <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -84,8 +80,8 @@ export default function PremiumToggle() {
               {user.premium ? "Отключить премиум-статус?" : "Активировать премиум-статус?"}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {user.premium 
-                ? "Вы уверены, что хотите отключить премиум-статус? Вы потеряете доступ к эксклюзивным функциям." 
+              {user.premium
+                ? "Вы уверены, что хотите отключить премиум-статус? Вы потеряете доступ к эксклюзивным функциям."
                 : "Премиум-статус откроет вам доступ к эксклюзивным функциям, расширенной статистике и уберёт все ограничения."}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -96,11 +92,7 @@ export default function PremiumToggle() {
               disabled={isLoading}
               className={user.premium ? "bg-destructive hover:bg-destructive/90" : ""}
             >
-              {isLoading 
-                ? "Обработка..." 
-                : user.premium 
-                  ? "Отключить" 
-                  : "Активировать"}
+              {isLoading ? "Обработка..." : user.premium ? "Отключить" : "Активировать"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -108,3 +100,4 @@ export default function PremiumToggle() {
     </>
   )
 }
+

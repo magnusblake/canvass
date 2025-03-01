@@ -35,13 +35,13 @@ export default function FollowButton({ userId, initialIsFollowing, className }: 
       if (response.ok) {
         const data = await response.json()
         setIsFollowing(data.followed)
-        
+
         if (data.followed) {
           toast.success("Вы успешно подписались на пользователя")
         } else {
           toast.success("Вы отписались от пользователя")
         }
-        
+
         router.refresh()
       } else {
         toast.error("Не удалось выполнить действие")
@@ -49,7 +49,7 @@ export default function FollowButton({ userId, initialIsFollowing, className }: 
     } catch (error) {
       toast.error("Произошла ошибка")
     } finally {
-        setIsLoading(false)
+      setIsLoading(false)
     }
   }
 
@@ -64,3 +64,4 @@ export default function FollowButton({ userId, initialIsFollowing, className }: 
     </Button>
   )
 }
+

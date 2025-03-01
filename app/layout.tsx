@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ["latin", "cyrillic"] })
 export const metadata: Metadata = {
   title: "Canvas - Платформа для дизайнеров",
   description: "Делитесь своими дизайнерскими проектами и находите вдохновение",
-  generator: 'v0.dev'
+  generator: "v0.dev",
 }
 
 export default function RootLayout({
@@ -32,3 +32,7 @@ export default function RootLayout({
     </html>
   )
 }
+
+
+
+import './globals.css'
