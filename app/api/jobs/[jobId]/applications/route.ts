@@ -1,8 +1,10 @@
-import { getJobApplications } from "@/lib/data"
+import { NextResponse } from "next/server"
+import { getSession } from "@/lib/auth"
+import { getJobById, getJobApplications, getCompanyById } from "@/lib/data"
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: { jobId: string } }) {
   const session = await getSession()
 
   if (!session?.user) {
@@ -10,7 +12,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   }
 
   try {
-    const job = await getJobById(params.id)
+    const job = await getJobById(params.jobId)
 
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 })
@@ -22,7 +24,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const applications = await getJobApplications(params.id)
+    const applications = await getJobApplications(params.jobId)
 
     return NextResponse.json(applications)
   } catch (error) {

@@ -1,8 +1,10 @@
+import { NextResponse } from "next/server"
+import { getSession } from "@/lib/auth"
 import { getUserApplications } from "@/lib/data"
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: Request) {
+export async function GET(req: Request, { params }: { params: { jobId: string } }) {
   const session = await getSession()
 
   if (!session?.user) {
@@ -10,7 +12,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const applications = await getUserApplications(session.user.id)
+    const applications = await getUserApplications(session.user.id, params.jobId)
     
     return NextResponse.json(applications)
   } catch (error) {

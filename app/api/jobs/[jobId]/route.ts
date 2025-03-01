@@ -1,10 +1,12 @@
-import { getJobById, updateJob, deleteJob } from "@/lib/data"
+import { NextResponse } from "next/server"
+import { getSession } from "@/lib/auth"
+import { getJobById, updateJob, deleteJob, getCompanyById } from "@/lib/data"
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: { jobId: string } }) {
   try {
-    const job = await getJobById(params.id)
+    const job = await getJobById(params.jobId)
 
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 })
@@ -17,7 +19,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: { jobId: string } }) {
   const session = await getSession()
 
   if (!session?.user) {
@@ -25,7 +27,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 
   try {
-    const job = await getJobById(params.id)
+    const job = await getJobById(params.jobId)
 
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 })
@@ -38,7 +40,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
 
     const body = await req.json()
-    const updatedJob = await updateJob(params.id, body)
+    const updatedJob = await updateJob(params.jobId, body)
 
     return NextResponse.json(updatedJob)
   } catch (error) {
@@ -47,7 +49,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: { jobId: string } }) {
   const session = await getSession()
 
   if (!session?.user) {
@@ -55,7 +57,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   }
 
   try {
-    const job = await getJobById(params.id)
+    const job = await getJobById(params.jobId)
 
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 })
@@ -67,7 +69,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    await deleteJob(params.id)
+    await deleteJob(params.jobId)
 
     return NextResponse.json({ success: true })
   } catch (error) {

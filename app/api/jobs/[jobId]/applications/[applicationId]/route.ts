@@ -1,12 +1,16 @@
+import { NextResponse } from "next/server"
+import { getSession } from "@/lib/auth"
 import { 
     getJobApplicationById,
     updateJobApplication,
-    deleteJobApplication
+    deleteJobApplication,
+    getJobById,
+    getCompanyById
   } from "@/lib/data"
   
   export const dynamic = 'force-dynamic';
   
-  export async function GET(req: Request, { params }: { params: { id: string } }) {
+  export async function GET(req: Request, { params }: { params: { jobId: string, applicationId: string } }) {
     const session = await getSession()
   
     if (!session?.user) {
@@ -14,7 +18,7 @@ import {
     }
   
     try {
-      const application = await getJobApplicationById(params.id)
+      const application = await getJobApplicationById(params.applicationId)
   
       if (!application) {
         return NextResponse.json({ error: "Application not found" }, { status: 404 })
@@ -35,7 +39,7 @@ import {
     }
   }
   
-  export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  export async function PATCH(req: Request, { params }: { params: { jobId: string, applicationId: string } }) {
     const session = await getSession()
   
     if (!session?.user) {
@@ -43,7 +47,7 @@ import {
     }
   
     try {
-      const application = await getJobApplicationById(params.id)
+      const application = await getJobApplicationById(params.applicationId)
   
       if (!application) {
         return NextResponse.json({ error: "Application not found" }, { status: 404 })
@@ -78,7 +82,7 @@ import {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       }
   
-      const updatedApplication = await updateJobApplication(params.id, body)
+      const updatedApplication = await updateJobApplication(params.applicationId, body)
   
       return NextResponse.json(updatedApplication)
     } catch (error) {
@@ -87,7 +91,7 @@ import {
     }
   }
   
-  export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+  export async function DELETE(req: Request, { params }: { params: { jobId: string, applicationId: string } }) {
     const session = await getSession()
   
     if (!session?.user) {
@@ -95,7 +99,7 @@ import {
     }
   
     try {
-      const application = await getJobApplicationById(params.id)
+      const application = await getJobApplicationById(params.applicationId)
   
       if (!application) {
         return NextResponse.json({ error: "Application not found" }, { status: 404 })
@@ -106,7 +110,7 @@ import {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       }
   
-      await deleteJobApplication(params.id)
+      await deleteJobApplication(params.applicationId)
   
       return NextResponse.json({ success: true })
     } catch (error) {

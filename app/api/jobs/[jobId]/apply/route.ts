@@ -9,7 +9,7 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: { jobId: string } }) {
   const session = await getSession()
 
   if (!session?.user) {
@@ -17,7 +17,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 
   try {
-    const job = await getJobById(params.id)
+    const job = await getJobById(params.jobId)
 
     if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 })
@@ -29,7 +29,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     // Check if user has already applied
-    const alreadyApplied = await hasUserApplied(session.user.id, params.id)
+    const alreadyApplied = await hasUserApplied(session.user.id, params.jobId)
     if (alreadyApplied) {
       return NextResponse.json({ error: "You have already applied to this job" }, { status: 400 })
     }
@@ -43,7 +43,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const { resumeUrl, coverLetter } = await req.json()
 
     const application = await createJobApplication({
-      jobId: params.id,
+      jobId: params.jobId,
       userId: session.user.id,
       resumeUrl,
       coverLetter
