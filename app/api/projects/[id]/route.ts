@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth/next"
 import { getProjectById, updateProject, deleteProject } from "@/lib/data"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
     const project = await getProjectById(params.id)

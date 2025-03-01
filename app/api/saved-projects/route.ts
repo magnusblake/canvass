@@ -1,13 +1,15 @@
-import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
-import db from "@/lib/db";
-import { projectFromDb } from "@/lib/data";
+import { NextResponse } from "next/server"
+import { getSession } from "@/lib/auth"
+import db from "@/lib/db"
+import { projectFromDb } from "@/lib/data"
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
-  const session = await getSession();
+  const session = await getSession()
 
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   try {
@@ -20,17 +22,15 @@ export async function GET(req: Request) {
       WHERE sp.userId = ?
       GROUP BY p.id
       ORDER BY sp.createdAt DESC
-    `);
+    `)
 
-    const rows = stmt.all(session.user.id);
-    const projects = rows.map(projectFromDb);
+    const rows = stmt.all(session.user.id)
+    const projects = rows.map(projectFromDb)
 
-    return NextResponse.json(projects);
+    return NextResponse.json(projects)
   } catch (error) {
-    console.error("Error fetching saved projects:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch saved projects" },
-      { status: 500 }
-    );
+    console.error("Error fetching saved projects:", error)
+    return NextResponse.json({ error: "Failed to fetch saved projects" }, { status: 500 })
   }
 }
+

@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth/next"
 import { getProjectById, toggleLike } from "@/lib/data"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
 

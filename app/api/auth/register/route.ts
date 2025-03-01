@@ -4,6 +4,8 @@ import bcrypt from "bcrypt"
 import { createUser, getUserByEmail } from "@/lib/data"
 import { createSession } from "@/lib/auth"
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request) {
   try {
     const { name, email, password } = await req.json()
@@ -26,7 +28,7 @@ export async function POST(req: Request) {
     const user = await createUser({
       name,
       email,
-      password: hashedPassword
+      password: hashedPassword,
     })
 
     // Создаем JWT-токен для сессии
@@ -34,17 +36,17 @@ export async function POST(req: Request) {
       id: user.id,
       name: user.name,
       email: user.email,
-      image: user.image
+      image: user.image,
     })
 
     // Устанавливаем куки
     cookies().set({
-      name: 'session',
+      name: "session",
       value: token,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7, // 7 дней
-      path: '/',
+      path: "/",
     })
 
     return NextResponse.json({
@@ -53,11 +55,12 @@ export async function POST(req: Request) {
         id: user.id,
         name: user.name,
         email: user.email,
-        image: user.image
-      }
+        image: user.image,
+      },
     })
   } catch (error) {
     console.error("Registration error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
+
