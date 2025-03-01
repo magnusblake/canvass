@@ -192,7 +192,13 @@ export async function deleteProject(id: string): Promise<boolean> {
 }
 
 export async function getUserById(id: string) {
-  const userStmt = db.prepare('SELECT * FROM users WHERE id = ?');
+  const userStmt = db.prepare(`
+    SELECT u.*, 
+           u.vk_link as vkLink, 
+           u.behance_link as behanceLink,
+           u.telegram_link as telegramLink
+    FROM users u 
+    WHERE u.id = ?`);
   const user = userStmt.get(id);
   
   if (!user) return null;
@@ -211,9 +217,43 @@ export async function getUserById(id: string) {
   const projectRows = projectsStmt.all(id);
   const projects = projectRows.map(projectFromDb);
   
+  // Получаем подписчиков
+  const followersStmt = db.prepare(`
+    SELECT u.* FROM users u
+    INNER JOIN followers f ON u.id = f.followerId
+    WHERE f.followingId = ?
+  `);
+  const followers = followersStmt.all(id);
+  
+  // Получаем подписки
+  const followingStmt = db.prepare(`
+    SELECT u.* FROM users u
+    INNER JOIN followers f ON u.id = f.followingId
+    WHERE f.followerId = ?
+  `);
+  const following = followingStmt.all(id);
+  
+  // Получаем награды
+  const awardsStmt = db.prepare(`SELECT * FROM awards WHERE userId = ? ORDER BY date DESC`);
+  const awards = awardsStmt.all(id);
+  
+  // Преобразуем interests из JSON строки в массив
+  let interests = [];
+  if (user.interests) {
+    try {
+      interests = JSON.parse(user.interests);
+    } catch (e) {
+      interests = [];
+    }
+  }
+  
   return {
     ...user,
-    projects
+    interests,
+    projects,
+    followers,
+    following,
+    awards
   };
 }
 
@@ -268,4 +308,165 @@ export async function isProjectLikedByUser(userId: string, projectId: string): P
   const stmt = db.prepare('SELECT id FROM likes WHERE userId = ? AND projectId = ?');
   const like = stmt.get(userId, projectId);
   return !!like;
+}
+
+export async function updateUserProfile(userId: string, data: {
+  name?: string;
+  bio?: string;
+  image?: string;
+  banner?: string;
+  country?: string;
+  interests?: string[];
+  vkLink?: string;
+  behanceLink?: string;
+  telegramLink?: string;
+}): Promise<User | null> {
+  const user = await getUserById(userId);
+  if (!user) return null;
+  
+  const updateFields = [];
+  const params = [];
+  
+  if (data.name !== undefined) {
+    updateFields.push('name = ?');
+    params.push(data.name);
+  }
+  
+  if (data.bio !== undefined) {
+    updateFields.push('bio = ?');
+    params.push(data.bio);
+  }
+  
+  if (data.image !== undefined) {
+    updateFields.push('image = ?');
+    params.push(data.image);
+  }
+  
+  if (data.banner !== undefined) {
+    updateFields.push('banner = ?');
+    params.push(data.banner);
+  }
+  
+  if (data.country !== undefined) {
+    updateFields.push('country = ?');
+    params.push(data.country);
+  }
+  
+  if (data.interests !== undefined) {
+    updateFields.push('interests = ?');
+    params.push(JSON.stringify(data.interests));
+  }
+  
+  if (data.vkLink !== undefined) {
+    updateFields.push('vk_link = ?');
+    params.push(data.vkLink);
+  }
+  
+  if (data.behanceLink !== undefined) {
+    updateFields.push('behance_link = ?');
+    params.push(data.behanceLink);
+  }
+  
+  if (data.telegramLink !== undefined) {
+    updateFields.push('telegram_link = ?');
+    params.push(data.telegramLink);
+  }
+  
+  // Добавляем id пользователя в параметры
+  params.push(userId);
+  
+  if (updateFields.length > 0) {
+    const stmt = db.prepare(`
+      UPDATE users 
+      SET ${updateFields.join(', ')}
+      WHERE id = ?
+    `);
+    
+    stmt.run(...params);
+  }
+  
+  return getUserById(userId);
+}
+
+export async function togglePremium(userId: string): Promise<{ premium: boolean }> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error("User not found");
+  
+  const newPremiumStatus = user.premium ? 0 : 1;
+  const stmt = db.prepare('UPDATE users SET premium = ? WHERE id = ?');
+  stmt.run(newPremiumStatus, userId);
+  
+  return { premium: Boolean(newPremiumStatus) };
+}
+
+export async function followUser(followerId: string, followingId: string): Promise<{ followed: boolean }> {
+  // Проверяем, существует ли уже подписка
+  const checkStmt = db.prepare('SELECT id FROM followers WHERE followerId = ? AND followingId = ?');
+  const existingFollow = checkStmt.get(followerId, followingId);
+  
+  if (existingFollow) {
+    // Отписываемся
+    const deleteStmt = db.prepare('DELETE FROM followers WHERE id = ?');
+    deleteStmt.run(existingFollow.id);
+    return { followed: false };
+  } else {
+    // Подписываемся
+    const id = uuidv4();
+    const insertStmt = db.prepare('INSERT INTO followers (id, followerId, followingId) VALUES (?, ?, ?)');
+    insertStmt.run(id, followerId, followingId);
+    return { followed: true };
+  }
+}
+
+export async function getFollowings(userId: string): Promise<User[]> {
+  const stmt = db.prepare(`
+    SELECT u.* FROM users u
+    INNER JOIN followers f ON u.id = f.followingId
+    WHERE f.followerId = ?
+  `);
+  
+  return stmt.all(userId);
+}
+
+export async function getFollowers(userId: string): Promise<User[]> {
+  const stmt = db.prepare(`
+    SELECT u.* FROM users u
+    INNER JOIN followers f ON u.id = f.followerId
+    WHERE f.followingId = ?
+  `);
+  
+  return stmt.all(userId);
+}
+
+export async function isFollowing(followerId: string, followingId: string): Promise<boolean> {
+  const stmt = db.prepare('SELECT id FROM followers WHERE followerId = ? AND followingId = ?');
+  const follow = stmt.get(followerId, followingId);
+  return !!follow;
+}
+
+export async function addAward(data: {
+  userId: string;
+  title: string;
+  description: string;
+  image: string;
+}): Promise<Award> {
+  const id = uuidv4();
+  const stmt = db.prepare(`
+    INSERT INTO awards (id, userId, title, description, image)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+  
+  stmt.run(id, data.userId, data.title, data.description, data.image);
+  
+  return getAwardById(id);
+}
+
+export async function getAwardById(id: string): Promise<Award> {
+  const stmt = db.prepare('SELECT * FROM awards WHERE id = ?');
+  return stmt.get(id);
+}
+
+export async function getUserAwards(userId: string): Promise<Award[]> {
+  const stmt = db.prepare('SELECT * FROM awards WHERE userId = ? ORDER BY date DESC');
+  return stmt.all(userId);
 }

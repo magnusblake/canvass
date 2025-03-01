@@ -7,6 +7,15 @@ export interface User {
   name: string
   email: string
   image?: string | null
+  banner?: string | null
+  bio?: string | null
+  country?: string | null
+  interests?: string[]
+  premium?: boolean
+  vkLink?: string | null
+  behanceLink?: string | null
+  telegramLink?: string | null
+  createdAt: string
 }
 
 interface AuthContextType {
@@ -15,6 +24,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>
   register: (name: string, email: string, password: string) => Promise<boolean>
   logout: () => Promise<void>
+  updateUser: (userData: Partial<User>) => void
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -93,9 +103,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Logout error:', error)
     }
   }
+  
+  const updateUser = (userData: Partial<User>) => {
+    if (user) {
+      setUser({ ...user, ...userData })
+    }
+  }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

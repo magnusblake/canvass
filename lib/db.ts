@@ -25,7 +25,14 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT UNIQUE NOT NULL,
   password TEXT,
   image TEXT,
+  banner TEXT,
   bio TEXT,
+  country TEXT,
+  interests TEXT,
+  premium INTEGER NOT NULL DEFAULT 0,
+  vk_link TEXT,
+  behance_link TEXT,
+  telegram_link TEXT,
   createdAt TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -56,6 +63,28 @@ CREATE TABLE IF NOT EXISTS likes (
   UNIQUE(userId, projectId)
 );
 
+-- Подписки
+CREATE TABLE IF NOT EXISTS followers (
+  id TEXT PRIMARY KEY,
+  followerId TEXT NOT NULL,
+  followingId TEXT NOT NULL, 
+  createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (followerId) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (followingId) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE(followerId, followingId)
+);
+
+-- Награды
+CREATE TABLE IF NOT EXISTS awards (
+  id TEXT PRIMARY KEY,
+  userId TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  image TEXT NOT NULL,
+  date TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Истории
 CREATE TABLE IF NOT EXISTS stories (
   id TEXT PRIMARY KEY,
@@ -79,13 +108,14 @@ export function isDatabaseEmpty() {
   return projectCount.count === 0 && userCount.count === 0 && storyCount.count === 0;
 }
 
-// Функция для наполнения базы данных демо-данными
 export function seedDatabase() {
   if (!isDatabaseEmpty()) {
     return; // Не заполняем, если база данных уже содержит данные
   }
   
   // Очищаем таблицы перед вставкой демо-данных
+  db.prepare('DELETE FROM awards').run();
+  db.prepare('DELETE FROM followers').run();
   db.prepare('DELETE FROM likes').run();
   db.prepare('DELETE FROM projects').run();
   db.prepare('DELETE FROM users').run();
@@ -93,19 +123,162 @@ export function seedDatabase() {
   
   // Вставляем демо пользователей
   const insertUser = db.prepare(
-    'INSERT INTO users (id, name, email, image, bio) VALUES (?, ?, ?, ?, ?)'
+    'INSERT INTO users (id, name, email, image, bio, country, interests, premium, vk_link, behance_link, telegram_link) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
   );
   
   const users = [
-    { id: 'user1', name: 'Анна Смирнова', email: 'anna@example.com', image: null, bio: 'Дизайнер интерфейсов с 5-летним опытом работы' },
-    { id: 'user2', name: 'Максим Петров', email: 'maxim@example.com', image: null, bio: '3D-визуализатор интерьеров и архитектурных объектов' },
-    { id: 'user3', name: 'Елена Козлова', email: 'elena@example.com', image: null, bio: 'Графический дизайнер, специализируюсь на брендинге' },
-    { id: 'user4', name: 'Игорь Волков', email: 'igor@example.com', image: null, bio: '3D-художник и концепт-дизайнер игровых персонажей' },
-    { id: 'user5', name: 'Марина Соколова', email: 'marina@example.com', image: null, bio: 'UI/UX дизайнер мобильных приложений' }
+    { 
+      id: 'user1', 
+      name: 'Анна Смирнова', 
+      email: 'anna@example.com', 
+      image: null, 
+      bio: 'Дизайнер интерфейсов с 5-летним опытом работы', 
+      country: 'Россия',
+      interests: JSON.stringify(['UI/UX', 'мобильные интерфейсы', 'веб-дизайн']),
+      premium: 1,
+      vkLink: 'https://vk.com/anna_design',
+      behanceLink: 'https://behance.net/annasmirn',
+      telegramLink: 'https://t.me/anna_design'
+    },
+    { 
+      id: 'user2', 
+      name: 'Максим Петров', 
+      email: 'maxim@example.com', 
+      image: null, 
+      bio: '3D-визуализатор интерьеров и архитектурных объектов', 
+      country: 'Россия',
+      interests: JSON.stringify(['3D-визуализация', 'архитектура', 'интерьеры']),
+      premium: 0,
+      vkLink: null,
+      behanceLink: 'https://behance.net/maxpetr',
+      telegramLink: null
+    },
+    { 
+      id: 'user3', 
+      name: 'Елена Козлова', 
+      email: 'elena@example.com', 
+      image: null, 
+      bio: 'Графический дизайнер, специализируюсь на брендинге', 
+      country: 'Беларусь',
+      interests: JSON.stringify(['брендинг', 'логотипы', 'фирменный стиль']),
+      premium: 1,
+      vkLink: 'https://vk.com/elena_design',
+      behanceLink: 'https://behance.net/elena_k',
+      telegramLink: 'https://t.me/elena_design'
+    },
+    { 
+      id: 'user4', 
+      name: 'Игорь Волков', 
+      email: 'igor@example.com', 
+      image: null, 
+      bio: '3D-художник и концепт-дизайнер игровых персонажей', 
+      country: 'Украина',
+      interests: JSON.stringify(['3D-моделирование', 'игровой дизайн', 'концепт-арт']),
+      premium: 0,
+      vkLink: null,
+      behanceLink: 'https://behance.net/igor_volkov',
+      telegramLink: 'https://t.me/igor_3d'
+    },
+    { 
+      id: 'user5', 
+      name: 'Марина Соколова', 
+      email: 'marina@example.com', 
+      image: null, 
+      bio: 'UI/UX дизайнер мобильных приложений', 
+      country: 'Россия',
+      interests: JSON.stringify(['мобильный дизайн', 'UI/UX', 'прототипирование']),
+      premium: 1,
+      vkLink: 'https://vk.com/marina_design',
+      behanceLink: 'https://behance.net/marina_s',
+      telegramLink: 'https://t.me/marina_ux'
+    }
   ];
   
   for (const user of users) {
-    insertUser.run(user.id, user.name, user.email, user.image, user.bio);
+    insertUser.run(
+      user.id, 
+      user.name, 
+      user.email, 
+      user.image, 
+      user.bio, 
+      user.country,
+      user.interests,
+      user.premium,
+      user.vkLink,
+      user.behanceLink,
+      user.telegramLink
+    );
+  }
+  
+  // Вставляем демо подписки
+  const insertFollower = db.prepare(
+    'INSERT INTO followers (id, followerId, followingId) VALUES (?, ?, ?)'
+  );
+  
+  const followers = [
+    { id: 'follow1', followerId: 'user1', followingId: 'user2' },
+    { id: 'follow2', followerId: 'user1', followingId: 'user3' },
+    { id: 'follow3', followerId: 'user2', followingId: 'user1' },
+    { id: 'follow4', followerId: 'user3', followingId: 'user1' },
+    { id: 'follow5', followerId: 'user3', followingId: 'user4' },
+    { id: 'follow6', followerId: 'user4', followingId: 'user2' },
+    { id: 'follow7', followerId: 'user5', followingId: 'user1' },
+    { id: 'follow8', followerId: 'user5', followingId: 'user3' }
+  ];
+  
+  for (const follow of followers) {
+    insertFollower.run(follow.id, follow.followerId, follow.followingId);
+  }
+  
+  // Вставляем демо награды
+  const insertAward = db.prepare(
+    'INSERT INTO awards (id, userId, title, description, image, date) VALUES (?, ?, ?, ?, ?, ?)'
+  );
+  
+  const awards = [
+    { 
+      id: 'award1', 
+      userId: 'user1', 
+      title: 'Дизайнер года', 
+      description: 'Победитель ежегодного конкурса Canvas Awards в категории UI/UX', 
+      image: '/awards/design-award.png',
+      date: '2023-12-15T10:30:00Z'
+    },
+    { 
+      id: 'award2', 
+      userId: 'user1', 
+      title: 'Лучший мобильный дизайн', 
+      description: 'Специальная награда за проект мобильного приложения', 
+      image: '/awards/mobile-award.png',
+      date: '2023-06-10T14:45:00Z'
+    },
+    { 
+      id: 'award3', 
+      userId: 'user2', 
+      title: 'Топ визуализатор 2023', 
+      description: 'Награда за выдающиеся работы в области 3D-визуализации', 
+      image: '/awards/3d-award.png',
+      date: '2023-11-05T09:20:00Z'
+    },
+    { 
+      id: 'award4', 
+      userId: 'user3', 
+      title: 'Лучший брендинг проект', 
+      description: 'Первое место в категории "Брендинг" на международном конкурсе', 
+      image: '/awards/branding-award.png',
+      date: '2023-09-22T15:10:00Z'
+    }
+  ];
+  
+  for (const award of awards) {
+    insertAward.run(
+      award.id,
+      award.userId,
+      award.title,
+      award.description,
+      award.image,
+      award.date
+    );
   }
   
   // Вставляем демо проекты

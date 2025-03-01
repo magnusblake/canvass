@@ -30,4 +30,23 @@ export interface User {
   bio?: string | null
   createdAt: string
   projects?: Project[]
+  premium?: boolean
+  country?: string
+  interests?: string[]
+  banner?: string | null
+  vkLink?: string | null
+  behanceLink?: string | null
+  telegramLink?: string | null
+  followers?: User[]
+  following?: User[]
+  awards?: Award[]
+}
+
+export interface Award {
+  id: string
+  userId: string
+  title: string
+  description: string
+  image: string
+  date: string
 }
