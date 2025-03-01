@@ -4,7 +4,6 @@ import Image from "next/image"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Header from "@/components/header"
 import { getUserById, isFollowing } from "@/lib/data"
-import db from "@/lib/db"
 import { Calendar, MapPin, Mail } from "lucide-react"
 import ProfileBadge from "@/components/premium-badge"
 import UserGallery from "@/components/user-gallery"
@@ -25,8 +24,9 @@ interface ProfilePageProps {
 
 // Добавляем функцию для статического экспорта
 export async function generateStaticParams() {
-  const users = db.prepare("SELECT id FROM users").all()
-  return users.map((user) => ({
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`)
+  const users = await res.json()
+  return users.map((user: { id: string }) => ({
     id: user.id,
   }))
 }
@@ -68,7 +68,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       {/* Banner */}
       <div className="mb-24 relative">
         <div className="w-full h-48 md:h-64 lg:h-80 bg-gradient-to-r from-primary/10 to-primary/5">
-          {user.banner && <Image src={user.banner} alt={user.name} fill className="object-cover" priority />}
+          {user.banner && (
+            <Image src={user.banner || "/placeholder.svg"} alt={user.name} fill className="object-cover" priority />
+          )}
         </div>
       </div>
 

@@ -21,12 +21,26 @@ export function projectFromDb(row: any): Project {
 }
 
 export async function getAllProjects(): Promise<Project[]> {
-  const response = await fetch("/api/projects")
-  if (!response.ok) {
-    throw new Error("Failed to fetch projects")
+  if (typeof window === "undefined") {
+    // Server-side
+    const stmt = await db.query(`
+      SELECT p.*, u.name as authorName, COUNT(l.id) as likeCount 
+      FROM projects p
+      LEFT JOIN users u ON p.authorId = u.id
+      LEFT JOIN likes l ON p.id = l.projectId
+      GROUP BY p.id
+      ORDER BY p.createdAt DESC
+    `)
+    return stmt.map(projectFromDb)
+  } else {
+    // Client-side
+    const response = await fetch("/api/projects")
+    if (!response.ok) {
+      throw new Error("Failed to fetch projects")
+    }
+    const projects = await response.json()
+    return projects.map(projectFromDb)
   }
-  const projects = await response.json()
-  return projects.map(projectFromDb)
 }
 
 export async function getProjectById(id: string): Promise<Project | null> {

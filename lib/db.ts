@@ -28,9 +28,11 @@ export async function run(sql: string, params: any[] = []) {
   return db.run(sql, params)
 }
 
-export default {
+const dbWrapper = {
   query,
   get,
   run,
 }
+
+export default dbWrapper
 
