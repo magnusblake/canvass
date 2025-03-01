@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/auth"
-import { getAllBlogPosts, createBlogPost } from "@/lib/data"
+import { getAllBlogPosts, createBlogPost, getFeaturedBlogPosts, getBlogPostsByCategory, getBlogPostsByTag } from "@/lib/data"
 
 export const dynamic = 'force-dynamic';
 

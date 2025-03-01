@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server"
 import { getJobBySlug } from "@/lib/data"
 
 export const dynamic = 'force-dynamic';
