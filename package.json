@@ -65,7 +65,7 @@
     "next-auth": "latest",
     "jose": "latest",
     "tailwindcss": "latest",
-    "bcryptjs": "latest",
+    "bcrypt": "latest",
     "uuid": "latest",
     "fs": "latest",
     "path": "latest",
